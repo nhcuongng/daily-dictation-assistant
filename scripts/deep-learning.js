@@ -21,6 +21,33 @@ class DeepLearningLoop {
 
     const container = document.createElement('div');
     container.className = 'dda-actions-container';
+
+    // Toggle Pin button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'dda-btn-toggle';
+    toggleBtn.innerHTML = '📌';
+    toggleBtn.title = 'Toggle Float/Inline Mode';
+    
+    // Load state
+    chrome.storage.local.get(['uiMode'], (result) => {
+      if (result.uiMode === 'float') {
+        container.classList.add('dda-float-mode');
+        toggleBtn.innerHTML = '🔽';
+      }
+    });
+
+    toggleBtn.onclick = (e) => {
+      e.preventDefault();
+      if (container.classList.contains('dda-float-mode')) {
+        container.classList.remove('dda-float-mode');
+        toggleBtn.innerHTML = '📌';
+        chrome.storage.local.set({ uiMode: 'inline' });
+      } else {
+        container.classList.add('dda-float-mode');
+        toggleBtn.innerHTML = '🔽';
+        chrome.storage.local.set({ uiMode: 'float' });
+      }
+    };
     
     // Clear Text button
     const clearBtn = document.createElement('button');
@@ -84,6 +111,7 @@ class DeepLearningLoop {
       diffContainer.style.display = 'block';
     };
 
+    container.appendChild(toggleBtn);
     container.appendChild(clearBtn);
     container.appendChild(peekBtn);
     container.appendChild(diffBtn);

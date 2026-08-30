@@ -111,3 +111,36 @@
   margin: 0 2px;
   border-radius: 3px;
 }
+
+/* UI Toggle State (Float Mode) */
+.dda-actions-container.dda-float-mode {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  opacity: 0.6;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 9999;
+  border: 1px solid #ced4da;
+}
+.dda-actions-container.dda-float-mode:hover {
+  opacity: 1;
+}
+
+.dda-btn-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.dda-btn-toggle:hover {
+  background: #e9ecef;
+}
