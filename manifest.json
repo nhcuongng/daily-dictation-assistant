@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Daily Dictation Assistant",
+  "version": "1.0.0",
+  "description": "Speed control and hotkeys for dailydictation.com",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.dailydictation.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.dailydictation.com/*"],
+      "css": ["styles/content.css"],
+      "js": ["scripts/audio-control.js", "scripts/content.js"]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "dicdation-assistant",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "chokidar-cli": "^3.0.0",
+    "cpx2": "^9.0.0",
+    "esbuild": "^0.28.2"
+  }
+}

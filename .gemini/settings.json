@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "command(*)",
+      "run_command:*",
+      "edit_file:*",
+      "write_to_file:*",
+      "read_file:*"
+    ]
+  }
+}
