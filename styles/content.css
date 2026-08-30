@@ -216,43 +216,364 @@ body[data-bs-theme="dark"] {
 }
 
 /* ==========================================================================
-   Speed Control
+   Speed Control (Compact Pill & Presets Popover)
    ========================================================================== */
-.dda-speed-control {
+.dda-speed-control-wrapper {
+  position: relative;
   display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: 12px;
   vertical-align: middle;
+  margin-left: 10px;
   font-family: inherit;
-  font-size: 13.5px;
-  color: var(--dda-text-primary);
-  opacity: 0.95;
-  transition: color 0.2s ease;
+  z-index: 100;
 }
 
-.dda-speed-control label {
-  margin: 0;
+.dda-speed-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  height: 36px;
+  box-sizing: border-box;
+  background: var(--dda-bg-subtle);
+  border: 1px solid var(--dda-border-strong);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dda-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--dda-shadow-sm);
+  user-select: none;
+}
+
+.dda-speed-pill:hover,
+.dda-speed-pill.dda-popover-open {
+  background: var(--dda-bg-hover);
+  border-color: var(--dda-accent-primary);
+  color: var(--dda-text-primary);
+  box-shadow: var(--dda-shadow-md);
+  transform: translateY(-1px);
+}
+
+.dda-speed-pill.dda-speed-active {
+  background: var(--dda-accent-subtle);
+  border-color: var(--dda-accent-border);
+  color: var(--dda-accent-text);
+}
+
+.dda-speed-pill .dda-speed-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.dda-speed-pill .dda-speed-value {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.dda-speed-pill .dda-speed-chevron {
+  font-size: 10px;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.dda-speed-pill.dda-popover-open .dda-speed-chevron {
+  transform: rotate(180deg);
+}
+
+/* Speed Popover Container */
+.dda-speed-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 295px;
+  background: var(--dda-bg-surface);
+  border: 1px solid var(--dda-border);
+  border-radius: 12px;
+  box-shadow: var(--dda-shadow-popover);
+  z-index: 99999;
+  overflow: hidden;
+  animation: ddaPopoverSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 13px;
+  color: var(--dda-text-primary);
+}
+
+.dda-speed-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--dda-bg-subtle);
+  border-bottom: 1px solid var(--dda-border);
+}
+
+.dda-speed-popover-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dda-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dda-speed-reset-btn {
+  background: transparent;
+  border: 1px solid var(--dda-border-strong);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--dda-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dda-speed-reset-btn:hover {
+  background: var(--dda-bg-hover);
+  color: var(--dda-accent-primary);
+  border-color: var(--dda-accent-border);
+}
+
+.dda-speed-popover-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.dda-speed-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dda-speed-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--dda-text-muted);
+}
+
+/* Presets Grid */
+.dda-speed-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.dda-speed-preset-btn {
+  background: var(--dda-bg-subtle);
+  border: 1px solid var(--dda-border);
+  border-radius: 8px;
+  padding: 6px 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dda-text-secondary);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.dda-speed-preset-btn:hover {
+  background: var(--dda-bg-hover);
+  color: var(--dda-text-primary);
+  border-color: var(--dda-border-strong);
+}
+
+.dda-speed-preset-btn.dda-preset-active {
+  background: var(--dda-accent-primary);
+  color: #ffffff;
+  border-color: var(--dda-accent-primary);
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+/* Slider Fine Tuning */
+.dda-speed-slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dda-speed-slider-current {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dda-accent-primary);
+}
+
+.dda-speed-slider-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 500;
-  color: var(--dda-text-secondary);
 }
 
-.dda-speed-control span {
-  min-width: 38px;
+.dda-speed-slider-bound {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--dda-text-muted);
+}
+
+.dda-speed-slider-input {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: var(--dda-slider-track);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--dda-slider-accent);
+}
+
+/* Custom Presets Configuration */
+.dda-speed-config-section {
+  border-top: 1px dashed var(--dda-border);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+.dda-speed-config-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-size: 12px;
   font-weight: 600;
+  color: var(--dda-text-muted);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s ease;
+}
+
+.dda-speed-config-toggle:hover,
+.dda-speed-config-toggle.expanded {
   color: var(--dda-text-primary);
 }
 
-.dda-speed-control input[type="range"] {
+.dda-config-toggle-arrow {
+  font-size: 11px;
+}
+
+.dda-speed-config-panel {
+  margin-top: 8px;
+}
+
+.dda-config-hint {
+  font-size: 11px;
+  color: var(--dda-text-muted);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.dda-preset-slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+  max-height: 170px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.dda-preset-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--dda-bg-subtle);
+  border: 1px solid var(--dda-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  transition: border-color 0.15s ease;
+}
+
+.dda-preset-slot-row:hover {
+  border-color: var(--dda-border-strong);
+}
+
+.dda-preset-slot-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--dda-text-muted);
+  min-width: 18px;
+}
+
+.dda-preset-slot-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--dda-slider-track);
+  border-radius: 2px;
+  outline: none;
   cursor: pointer;
   accent-color: var(--dda-slider-accent);
-  background: var(--dda-slider-track);
-  height: 4px;
-  border-radius: 2px;
-  transition: all 0.2s ease;
+}
+
+.dda-preset-slot-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--dda-text-primary);
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.dda-preset-slot-remove {
+  background: none;
+  border: none;
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--dda-text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.dda-preset-slot-remove:hover:not(.disabled) {
+  background: var(--dda-bg-hover);
+  color: #ef4444;
+}
+
+.dda-preset-slot-remove.disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.dda-config-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.dda-btn-add-preset,
+.dda-btn-default-presets {
+  padding: 4px 10px;
+  font-size: 11.5px;
+  border-radius: 6px;
+}
+
+.dda-btn-add-preset.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dda-speed-popover-footer {
+  padding: 6px 14px;
+  background: var(--dda-bg-subtle);
+  border-top: 1px solid var(--dda-border);
+  font-size: 11px;
+  color: var(--dda-text-muted);
+  text-align: center;
 }
 
 /* ==========================================================================
