@@ -45,11 +45,13 @@ class DeepLearningLoop {
   }
 
   renderActions(textarea) {
-    const vocabContainer = document.createElement('div');
-    textarea.parentNode.insertBefore(vocabContainer, textarea);
-
     const container = document.createElement('div');
     container.className = 'dda-actions-container';
+
+    // Vocab Slot (Word Bank)
+    const vocabContainer = document.createElement('div');
+    vocabContainer.className = 'dda-vocab-slot';
+    container.appendChild(vocabContainer);
 
     // Peek Transcript button
     const peekBtn = document.createElement('button');
@@ -66,10 +68,10 @@ class DeepLearningLoop {
 
     container.appendChild(peekBtn);
     
-    // Insert just above textarea
+    // Insert unified toolbar just above textarea
     textarea.parentNode.insertBefore(container, textarea);
     
-    // Load Vocab Prep (collapsible panel, default collapsed, manual toggle only to avoid layout shift)
+    // Load Vocab Prep (anchored to vocab slot inside toolbar)
     const allText = this.getTranscriptText();
     if (allText && window.VocabPrep) {
       window.VocabPrep.renderPanel(allText, vocabContainer, { defaultCollapsed: true });

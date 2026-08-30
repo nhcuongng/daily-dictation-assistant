@@ -86,6 +86,18 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
     document.body.innerHTML = '';
   });
 
+  test('renders unified toolbar containing vocab slot and peek button in the same container', () => {
+    const container = document.querySelector('.dda-actions-container');
+    expect(container).not.toBeNull();
+    
+    const vocabSlot = container.querySelector('.dda-vocab-slot');
+    expect(vocabSlot).not.toBeNull();
+
+    const peekBtn = container.querySelector('.dda-btn-peek');
+    expect(peekBtn).not.toBeNull();
+    expect(peekBtn).toBe(loop.peekBtn);
+  });
+
   test('starts at subtle level, transitions to warning after 3 errors, fire after 6 errors, and resets for new challenge', () => {
     expect(loop.getPeekLevel()).toBe('subtle');
     expect(loop.peekBtn.classList.contains('dda-level-subtle')).toBe(true);

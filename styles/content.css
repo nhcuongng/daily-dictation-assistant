@@ -30,9 +30,15 @@
 .dda-actions-container {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+.dda-vocab-slot {
+  flex: 1;
+  min-width: 0;
+  display: flex;
 }
 .dda-btn {
   background: #f8fafc;
@@ -60,6 +66,10 @@
 .dda-btn-peek {
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-height: 36px;
+  box-sizing: border-box;
 }
 
 .dda-peek-progress-bar {
@@ -140,7 +150,7 @@
   top: calc(100% + 6px);
   left: 0;
   width: 100%;
-  max-width: 540px;
+  max-width: min(540px, calc(100vw - 24px));
   background: #ffffff;
   border-radius: 10px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.06);
@@ -251,7 +261,8 @@
 .dda-vocab-wrapper {
   position: relative;
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 0;
+  display: flex;
 }
 
 .dda-vocab-panel {
@@ -267,7 +278,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 7px 12px;
+  padding: 6px 12px;
+  width: 100%;
+  min-height: 36px;
+  box-sizing: border-box;
 }
 
 .dda-vocab-panel:hover,
@@ -311,7 +325,7 @@
 }
 
 .dda-vocab-toggle-icon {
-  font-size: 11px;
+  font-size: 12px;
   color: #2563eb;
   transition: transform 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
@@ -329,7 +343,7 @@
   top: calc(100% + 6px);
   left: 0;
   width: 100%;
-  max-width: 520px;
+  max-width: min(520px, calc(100vw - 24px));
   background: #ffffff;
   border-radius: 10px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.06);
@@ -466,4 +480,110 @@
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+/* ==========================================================================
+   Responsive Design & Mobile Adaptations
+   ========================================================================== */
+@media (max-width: 560px) {
+  .dda-actions-container {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .dda-vocab-slot,
+  .dda-btn-peek {
+    width: 100%;
+  }
+  .dda-btn-peek {
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   Adaptive Dark Mode Theme
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  .dda-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  .dda-btn:hover {
+    background: #334155;
+    border-color: #475569;
+    color: #f8fafc;
+  }
+  .dda-btn-peek.dda-level-subtle {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+  }
+  .dda-btn-peek.dda-level-subtle:hover {
+    background: #334155;
+    color: #f1f5f9;
+  }
+  .dda-vocab-panel {
+    background: rgba(30, 58, 138, 0.25);
+    border-color: rgba(96, 165, 250, 0.35);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  .dda-vocab-panel:hover,
+  .dda-vocab-panel.dda-active {
+    background: rgba(30, 58, 138, 0.4);
+    border-color: rgba(96, 165, 250, 0.6);
+  }
+  .dda-vocab-text,
+  .dda-vocab-title {
+    color: #93c5fd;
+  }
+  .dda-vocab-count-badge {
+    background: #3b82f6;
+  }
+  .dda-vocab-toggle-icon {
+    color: #60a5fa;
+  }
+  .dda-vocab-popover,
+  .dda-transcript-popover {
+    background: #0f172a;
+    border-color: #334155;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.2);
+    color: #f8fafc;
+  }
+  .dda-vocab-popover-header,
+  .dda-transcript-popover-header {
+    background: #1e293b;
+    border-bottom-color: #334155;
+  }
+  .dda-vocab-popover-title,
+  .dda-popover-close-btn {
+    color: #e2e8f0;
+  }
+  .dda-vocab-word {
+    background: #1e293b;
+    border-color: #334155;
+    color: #93c5fd;
+  }
+  .dda-vocab-word:hover {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #60a5fa;
+  }
+  .dda-current-sentence-box {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  .dda-sentence-item {
+    color: #cbd5e1;
+    border-bottom-color: #1e293b;
+  }
+  .dda-sentence-item:hover {
+    background: #1e293b;
+  }
+  .dda-popover-footer {
+    background: #1e293b;
+    border-top-color: #334155;
+    color: #94a3b8;
+  }
 }

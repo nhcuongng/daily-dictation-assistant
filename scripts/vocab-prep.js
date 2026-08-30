@@ -59,7 +59,7 @@ class VocabPrep {
       </div>
       <div class="dda-vocab-actions">
         <span class="dda-vocab-count-badge">${words.length} words</span>
-        <span class="dda-vocab-toggle-icon">▼</span>
+        <span class="dda-vocab-toggle-icon">↗</span>
       </div>
     `;
 

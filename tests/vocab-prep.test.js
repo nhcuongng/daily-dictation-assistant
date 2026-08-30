@@ -62,6 +62,7 @@ describe('VocabPrep', () => {
 
     const toggleIcon = panel.querySelector('.dda-vocab-toggle-icon');
     expect(toggleIcon).not.toBeNull();
+    expect(toggleIcon.textContent).toBe('↗');
   });
 
   test('opens anchored popover on panel click and displays vocabulary words', () => {
