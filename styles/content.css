@@ -1,3 +1,223 @@
+/* ==========================================================================
+   Design Tokens & Theme Variables
+   Priority: DailyDictation's data-bs-theme attribute -> System preference
+   ========================================================================== */
+
+:root,
+[data-bs-theme="light"],
+html[data-bs-theme="light"],
+body[data-bs-theme="light"] {
+  /* Surface & Backgrounds */
+  --dda-bg-surface: #ffffff;
+  --dda-bg-subtle: #f8fafc;
+  --dda-bg-hover: #f1f5f9;
+  --dda-bg-active: #e2e8f0;
+  
+  /* Borders */
+  --dda-border: #e2e8f0;
+  --dda-border-strong: #cbd5e1;
+  --dda-border-focus: #94a3b8;
+  
+  /* Typography */
+  --dda-text-primary: #0f172a;
+  --dda-text-secondary: #334155;
+  --dda-text-muted: #64748b;
+  --dda-text-subtle: #94a3b8;
+  
+  /* Primary Accent & Vocab */
+  --dda-accent-primary: #2563eb;
+  --dda-accent-hover: #1d4ed8;
+  --dda-accent-subtle: #eff6ff;
+  --dda-accent-subtle-hover: #dbeafe;
+  --dda-accent-border: #bfdbfe;
+  --dda-accent-border-hover: #93c5fd;
+  --dda-accent-text: #1d4ed8;
+  --dda-badge-bg: #2563eb;
+  --dda-badge-text: #ffffff;
+
+  /* Subtle Peek State */
+  --dda-peek-subtle-bg: #f8fafc;
+  --dda-peek-subtle-border: #cbd5e1;
+  --dda-peek-subtle-text: #475569;
+  --dda-peek-subtle-hover-bg: #f1f5f9;
+  --dda-peek-subtle-hover-text: #0f172a;
+  --dda-peek-subtle-bar: #94a3b8;
+
+  /* Warning Peek State (3-5 tries) */
+  --dda-peek-warning-bg: #fffbeb;
+  --dda-peek-warning-border: #f59e0b;
+  --dda-peek-warning-text: #b45309;
+  --dda-peek-warning-hover-bg: #fef3c7;
+  --dda-peek-warning-hover-border: #d97706;
+  --dda-peek-warning-glow: rgba(245, 158, 11, 0.2);
+  --dda-peek-warning-bar: linear-gradient(90deg, #f59e0b, #d97706);
+
+  /* Fire / Rescue Peek State (6+ tries) */
+  --dda-peek-fire-bg: #fef2f2;
+  --dda-peek-fire-border: #ef4444;
+  --dda-peek-fire-text: #dc2626;
+  --dda-peek-fire-hover-bg: #fee2e2;
+  --dda-peek-fire-hover-border: #b91c1c;
+  --dda-peek-fire-glow: rgba(239, 68, 68, 0.35);
+  --dda-peek-fire-bar: linear-gradient(90deg, #f97316, #ef4444);
+
+  /* Diff Engine */
+  --dda-diff-bg: #f8fafc;
+  --dda-diff-border: #e2e8f0;
+  --dda-diff-correct: #16a34a;
+  --dda-diff-missing-bg: #fee2e2;
+  --dda-diff-missing-text: #dc2626;
+  --dda-diff-wrong-bg: #fef3c7;
+  --dda-diff-wrong-text: #d97706;
+
+  /* Popover & Elevation */
+  --dda-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --dda-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --dda-shadow-popover: 0 12px 30px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+
+  /* Range Slider */
+  --dda-slider-track: #e2e8f0;
+  --dda-slider-accent: #2563eb;
+}
+
+/* Dark Theme overrides when DailyDictation data-bs-theme="dark" */
+[data-bs-theme="dark"],
+html[data-bs-theme="dark"],
+body[data-bs-theme="dark"] {
+  /* Surface & Backgrounds */
+  --dda-bg-surface: #0f172a;
+  --dda-bg-subtle: #1e293b;
+  --dda-bg-hover: #334155;
+  --dda-bg-active: #475569;
+  
+  /* Borders */
+  --dda-border: #334155;
+  --dda-border-strong: #475569;
+  --dda-border-focus: #64748b;
+  
+  /* Typography */
+  --dda-text-primary: #f8fafc;
+  --dda-text-secondary: #cbd5e1;
+  --dda-text-muted: #94a3b8;
+  --dda-text-subtle: #64748b;
+  
+  /* Primary Accent & Vocab */
+  --dda-accent-primary: #3b82f6;
+  --dda-accent-hover: #60a5fa;
+  --dda-accent-subtle: rgba(30, 58, 138, 0.28);
+  --dda-accent-subtle-hover: rgba(30, 58, 138, 0.45);
+  --dda-accent-border: rgba(96, 165, 250, 0.35);
+  --dda-accent-border-hover: rgba(96, 165, 250, 0.6);
+  --dda-accent-text: #93c5fd;
+  --dda-badge-bg: #3b82f6;
+  --dda-badge-text: #ffffff;
+
+  /* Subtle Peek State */
+  --dda-peek-subtle-bg: #1e293b;
+  --dda-peek-subtle-border: #334155;
+  --dda-peek-subtle-text: #94a3b8;
+  --dda-peek-subtle-hover-bg: #334155;
+  --dda-peek-subtle-hover-text: #f1f5f9;
+  --dda-peek-subtle-bar: #64748b;
+
+  /* Warning Peek State (3-5 tries) */
+  --dda-peek-warning-bg: rgba(120, 53, 15, 0.25);
+  --dda-peek-warning-border: #f59e0b;
+  --dda-peek-warning-text: #fbbf24;
+  --dda-peek-warning-hover-bg: rgba(120, 53, 15, 0.4);
+  --dda-peek-warning-hover-border: #fbbf24;
+  --dda-peek-warning-glow: rgba(245, 158, 11, 0.3);
+  --dda-peek-warning-bar: linear-gradient(90deg, #f59e0b, #d97706);
+
+  /* Fire / Rescue Peek State (6+ tries) */
+  --dda-peek-fire-bg: rgba(127, 29, 29, 0.3);
+  --dda-peek-fire-border: #ef4444;
+  --dda-peek-fire-text: #f87171;
+  --dda-peek-fire-hover-bg: rgba(127, 29, 29, 0.45);
+  --dda-peek-fire-hover-border: #f87171;
+  --dda-peek-fire-glow: rgba(239, 68, 68, 0.45);
+  --dda-peek-fire-bar: linear-gradient(90deg, #f97316, #ef4444);
+
+  /* Diff Engine */
+  --dda-diff-bg: #1e293b;
+  --dda-diff-border: #334155;
+  --dda-diff-correct: #4ade80;
+  --dda-diff-missing-bg: rgba(239, 68, 68, 0.2);
+  --dda-diff-missing-text: #f87171;
+  --dda-diff-wrong-bg: rgba(245, 158, 11, 0.2);
+  --dda-diff-wrong-text: #fbbf24;
+
+  /* Popover & Elevation */
+  --dda-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --dda-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --dda-shadow-popover: 0 14px 32px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  /* Range Slider */
+  --dda-slider-track: #334155;
+  --dda-slider-accent: #3b82f6;
+}
+
+/* Fallback media query when data-bs-theme is not explicitly specified on the document */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme="light"]):not(html[data-bs-theme="light"]):not(body[data-bs-theme="light"]) {
+    --dda-bg-surface: #0f172a;
+    --dda-bg-subtle: #1e293b;
+    --dda-bg-hover: #334155;
+    --dda-bg-active: #475569;
+    --dda-border: #334155;
+    --dda-border-strong: #475569;
+    --dda-border-focus: #64748b;
+    --dda-text-primary: #f8fafc;
+    --dda-text-secondary: #cbd5e1;
+    --dda-text-muted: #94a3b8;
+    --dda-text-subtle: #64748b;
+    --dda-accent-primary: #3b82f6;
+    --dda-accent-hover: #60a5fa;
+    --dda-accent-subtle: rgba(30, 58, 138, 0.28);
+    --dda-accent-subtle-hover: rgba(30, 58, 138, 0.45);
+    --dda-accent-border: rgba(96, 165, 250, 0.35);
+    --dda-accent-border-hover: rgba(96, 165, 250, 0.6);
+    --dda-accent-text: #93c5fd;
+    --dda-badge-bg: #3b82f6;
+    --dda-badge-text: #ffffff;
+    --dda-peek-subtle-bg: #1e293b;
+    --dda-peek-subtle-border: #334155;
+    --dda-peek-subtle-text: #94a3b8;
+    --dda-peek-subtle-hover-bg: #334155;
+    --dda-peek-subtle-hover-text: #f1f5f9;
+    --dda-peek-subtle-bar: #64748b;
+    --dda-peek-warning-bg: rgba(120, 53, 15, 0.25);
+    --dda-peek-warning-border: #f59e0b;
+    --dda-peek-warning-text: #fbbf24;
+    --dda-peek-warning-hover-bg: rgba(120, 53, 15, 0.4);
+    --dda-peek-warning-hover-border: #fbbf24;
+    --dda-peek-warning-glow: rgba(245, 158, 11, 0.3);
+    --dda-peek-warning-bar: linear-gradient(90deg, #f59e0b, #d97706);
+    --dda-peek-fire-bg: rgba(127, 29, 29, 0.3);
+    --dda-peek-fire-border: #ef4444;
+    --dda-peek-fire-text: #f87171;
+    --dda-peek-fire-hover-bg: rgba(127, 29, 29, 0.45);
+    --dda-peek-fire-hover-border: #f87171;
+    --dda-peek-fire-glow: rgba(239, 68, 68, 0.45);
+    --dda-peek-fire-bar: linear-gradient(90deg, #f97316, #ef4444);
+    --dda-diff-bg: #1e293b;
+    --dda-diff-border: #334155;
+    --dda-diff-correct: #4ade80;
+    --dda-diff-missing-bg: rgba(239, 68, 68, 0.2);
+    --dda-diff-missing-text: #f87171;
+    --dda-diff-wrong-bg: rgba(245, 158, 11, 0.2);
+    --dda-diff-wrong-text: #fbbf24;
+    --dda-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --dda-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    --dda-shadow-popover: 0 14px 32px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
+    --dda-slider-track: #334155;
+    --dda-slider-accent: #3b82f6;
+  }
+}
+
+/* ==========================================================================
+   Speed Control
+   ========================================================================== */
 .dda-speed-control {
   display: inline-flex;
   align-items: center;
@@ -5,28 +225,39 @@
   margin-left: 12px;
   vertical-align: middle;
   font-family: inherit;
-  font-size: 14px;
-  color: inherit;
-  opacity: 0.9;
+  font-size: 13.5px;
+  color: var(--dda-text-primary);
+  opacity: 0.95;
+  transition: color 0.2s ease;
 }
+
 .dda-speed-control label {
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 500;
-}
-.dda-speed-control span {
-  min-width: 40px;
-  font-weight: 600;
-}
-.dda-speed-control input[type="range"] {
-  cursor: pointer;
-  accent-color: #0d6efd; /* Bootstrap primary blue */
-  height: 4px;
+  color: var(--dda-text-secondary);
 }
 
-/* Phase 2 Deep Learning UI */
+.dda-speed-control span {
+  min-width: 38px;
+  font-weight: 600;
+  color: var(--dda-text-primary);
+}
+
+.dda-speed-control input[type="range"] {
+  cursor: pointer;
+  accent-color: var(--dda-slider-accent);
+  background: var(--dda-slider-track);
+  height: 4px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+/* ==========================================================================
+   Unified Actions Toolbar
+   ========================================================================== */
 .dda-actions-container {
   position: relative;
   display: flex;
@@ -35,14 +266,16 @@
   margin-bottom: 8px;
   width: 100%;
 }
+
 .dda-vocab-slot {
   flex: 1;
   min-width: 0;
   display: flex;
 }
+
 .dda-btn {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
+  background: var(--dda-bg-subtle);
+  border: 1px solid var(--dda-border-strong);
   padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
@@ -51,18 +284,22 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #334155;
+  color: var(--dda-text-secondary);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--dda-shadow-sm);
   user-select: none;
 }
+
 .dda-btn:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  color: #0f172a;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  background: var(--dda-bg-hover);
+  border-color: var(--dda-border-focus);
+  color: var(--dda-text-primary);
+  box-shadow: var(--dda-shadow-md);
 }
 
+/* ==========================================================================
+   Progressive Peek Button & Hint Levels
+   ========================================================================== */
 .dda-btn-peek {
   position: relative;
   overflow: hidden;
@@ -83,81 +320,88 @@
 }
 
 .dda-btn-peek.dda-level-subtle .dda-peek-progress-bar {
-  background: #94a3b8;
+  background: var(--dda-peek-subtle-bar);
 }
 
 .dda-btn-peek.dda-level-warning .dda-peek-progress-bar {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
+  background: var(--dda-peek-warning-bar);
 }
 
 .dda-btn-peek.dda-level-fire .dda-peek-progress-bar {
-  background: linear-gradient(90deg, #f97316, #ef4444);
+  background: var(--dda-peek-fire-bar);
   box-shadow: 0 0 6px #ef4444;
 }
 
-/* Progressive Peek Button States */
+/* Level Subtle */
 .dda-btn-peek.dda-level-subtle {
-  opacity: 0.7;
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #475569;
-}
-.dda-btn-peek.dda-level-subtle:hover {
-  opacity: 1;
-  background: #f1f5f9;
-  color: #0f172a;
+  background: var(--dda-peek-subtle-bg);
+  border-color: var(--dda-peek-subtle-border);
+  color: var(--dda-peek-subtle-text);
 }
 
+.dda-btn-peek.dda-level-subtle:hover {
+  background: var(--dda-peek-subtle-hover-bg);
+  color: var(--dda-peek-subtle-hover-text);
+  border-color: var(--dda-border-focus);
+}
+
+/* Level Warning (3-5 tries) */
 .dda-btn-peek.dda-level-warning {
-  background: #fffbeb;
-  border-color: #f59e0b;
-  color: #b45309;
+  background: var(--dda-peek-warning-bg);
+  border-color: var(--dda-peek-warning-border);
+  color: var(--dda-peek-warning-text);
   font-weight: 600;
-  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 1px 4px var(--dda-peek-warning-glow);
   animation: ddaPulseAmber 2s infinite;
 }
+
 .dda-btn-peek.dda-level-warning:hover {
-  background: #fef3c7;
-  border-color: #d97706;
+  background: var(--dda-peek-warning-hover-bg);
+  border-color: var(--dda-peek-warning-hover-border);
 }
 
+/* Level Fire / Rescue (6+ tries) */
 .dda-btn-peek.dda-level-fire {
-  background: #fef2f2;
-  border-color: #ef4444;
-  color: #dc2626;
+  background: var(--dda-peek-fire-bg);
+  border-color: var(--dda-peek-fire-border);
+  color: var(--dda-peek-fire-text);
   font-weight: 700;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 0 10px var(--dda-peek-fire-glow);
   animation: ddaPulseRed 1.5s infinite;
 }
+
 .dda-btn-peek.dda-level-fire:hover {
-  background: #fee2e2;
-  border-color: #b91c1c;
+  background: var(--dda-peek-fire-hover-bg);
+  border-color: var(--dda-peek-fire-hover-border);
 }
 
 @keyframes ddaPulseAmber {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-  50% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15); }
+  0%, 100% { box-shadow: 0 0 0 0 var(--dda-peek-warning-glow); }
+  50% { box-shadow: 0 0 0 4px var(--dda-peek-warning-glow); }
 }
 
 @keyframes ddaPulseRed {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 var(--dda-peek-fire-glow); }
+  50% { box-shadow: 0 0 0 5px var(--dda-peek-fire-glow); }
 }
 
-/* Transcript Floating Popover */
+/* ==========================================================================
+   Transcript Floating Popover
+   ========================================================================== */
 .dda-transcript-popover {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
   width: 100%;
   max-width: min(540px, calc(100vw - 24px));
-  background: #ffffff;
+  background: var(--dda-bg-surface);
   border-radius: 10px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.06);
-  border: 1px solid #cbd5e1;
+  box-shadow: var(--dda-shadow-popover);
+  border: 1px solid var(--dda-border);
   overflow: hidden;
   z-index: 9999;
   animation: ddaPopoverSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--dda-text-primary);
 }
 
 .dda-transcript-popover-header {
@@ -165,14 +409,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--dda-bg-subtle);
+  border-bottom: 1px solid var(--dda-border);
 }
 
 .dda-transcript-tabs-nav {
   display: flex;
   gap: 4px;
-  background: #e2e8f0;
+  background: var(--dda-border);
   padding: 3px;
   border-radius: 6px;
 }
@@ -183,17 +427,17 @@
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--dda-text-muted);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .dda-transcript-tab-btn.active {
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--dda-bg-surface);
+  color: var(--dda-text-primary);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: var(--dda-shadow-sm);
 }
 
 .dda-transcript-body {
@@ -202,24 +446,24 @@
   overflow-y: auto;
   font-size: 14px;
   line-height: 1.6;
-  color: #1e293b;
+  color: var(--dda-text-primary);
 }
 
 .dda-current-sentence-box {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--dda-accent-subtle);
+  border: 1px solid var(--dda-accent-border);
   padding: 12px 14px;
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
-  color: #1d4ed8;
+  color: var(--dda-accent-text);
 }
 
 .dda-challenge-index-tag {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  color: #3b82f6;
+  color: var(--dda-accent-primary);
   margin-bottom: 4px;
   letter-spacing: 0.5px;
 }
@@ -231,33 +475,41 @@
 }
 
 .dda-sentence-item {
-  padding: 4px 8px;
-  border-radius: 4px;
-  color: #475569;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--dda-text-secondary);
   font-size: 13.5px;
   line-height: 1.5;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dda-sentence-item:hover {
+  background: var(--dda-bg-hover);
+  color: var(--dda-text-primary);
 }
 
 .dda-sentence-item.active {
-  background: #eff6ff;
-  border-left: 3px solid #3b82f6;
-  color: #1d4ed8;
+  background: var(--dda-accent-subtle);
+  border-left: 3px solid var(--dda-accent-primary);
+  color: var(--dda-accent-text);
   font-weight: 700;
   padding-left: 10px;
 }
 
 .dda-transcript-popover-footer {
   padding: 6px 14px;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: var(--dda-bg-subtle);
+  border-top: 1px solid var(--dda-border);
   font-size: 11px;
-  color: #64748b;
+  color: var(--dda-text-muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Vocab Container / Wrapper */
+/* ==========================================================================
+   Vocab Prep Slot & Anchored Popover
+   ========================================================================== */
 .dda-vocab-wrapper {
   position: relative;
   width: 100%;
@@ -266,11 +518,11 @@
 }
 
 .dda-vocab-panel {
-  background: #f0f7ff;
-  border: 1px solid #bfdbfe;
+  background: var(--dda-accent-subtle);
+  border: 1px solid var(--dda-accent-border);
   border-radius: 8px;
   font-size: 13px;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05);
+  box-shadow: var(--dda-shadow-sm);
   cursor: pointer;
   user-select: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -286,9 +538,9 @@
 
 .dda-vocab-panel:hover,
 .dda-vocab-panel.dda-active {
-  background: #e0f2fe;
-  border-color: #93c5fd;
-  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.12);
+  background: var(--dda-accent-subtle-hover);
+  border-color: var(--dda-accent-border-hover);
+  box-shadow: var(--dda-shadow-md);
 }
 
 .dda-vocab-text,
@@ -297,7 +549,7 @@
   align-items: center;
   gap: 6px;
   font-weight: 500;
-  color: #1d4ed8;
+  color: var(--dda-accent-text);
   flex: 1;
   min-width: 0;
   white-space: nowrap;
@@ -313,8 +565,8 @@
 }
 
 .dda-vocab-count-badge {
-  background: #2563eb;
-  color: #ffffff;
+  background: var(--dda-badge-bg);
+  color: var(--dda-badge-text);
   font-size: 11px;
   line-height: 1;
   padding: 3px 8px;
@@ -326,7 +578,7 @@
 
 .dda-vocab-toggle-icon {
   font-size: 12px;
-  color: #2563eb;
+  color: var(--dda-accent-primary);
   transition: transform 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
 }
@@ -334,23 +586,24 @@
 .dda-vocab-panel:hover .dda-vocab-toggle-icon,
 .dda-vocab-panel.dda-active .dda-vocab-toggle-icon {
   transform: scale(1.18);
-  color: #1d4ed8;
+  color: var(--dda-accent-hover);
 }
 
-/* Anchored Floating Popover */
+/* Anchored Vocab Popover */
 .dda-vocab-popover {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
   width: 100%;
   max-width: min(520px, calc(100vw - 24px));
-  background: #ffffff;
+  background: var(--dda-bg-surface);
   border-radius: 10px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.06);
-  border: 1px solid #cbd5e1;
+  box-shadow: var(--dda-shadow-popover);
+  border: 1px solid var(--dda-border);
   overflow: hidden;
   z-index: 9999;
   animation: ddaPopoverSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--dda-text-primary);
 }
 
 .dda-vocab-popover-header {
@@ -358,24 +611,24 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--dda-bg-subtle);
+  border-bottom: 1px solid var(--dda-border);
 }
 
 .dda-vocab-popover-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--dda-text-primary);
 }
 
 .dda-popover-close-btn {
   background: transparent;
   border: none;
   font-size: 16px;
-  color: #64748b;
+  color: var(--dda-text-muted);
   cursor: pointer;
   padding: 2px 6px;
   border-radius: 4px;
@@ -384,8 +637,8 @@
 }
 
 .dda-popover-close-btn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: var(--dda-bg-hover);
+  color: var(--dda-text-primary);
 }
 
 .dda-vocab-popover-body {
@@ -396,10 +649,10 @@
 
 .dda-vocab-popover-footer {
   padding: 6px 14px;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: var(--dda-bg-subtle);
+  border-top: 1px solid var(--dda-border);
   font-size: 11px;
-  color: #64748b;
+  color: var(--dda-text-muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -412,25 +665,25 @@
 }
 
 .dda-vocab-word {
-  background: #f1f5f9;
-  color: #0366d6;
-  border: 1px solid #cbd5e1;
-  padding: 3px 9px;
+  background: var(--dda-bg-hover);
+  color: var(--dda-accent-primary);
+  border: 1px solid var(--dda-border);
+  padding: 4px 10px;
   border-radius: 14px;
   font-size: 12px;
   font-weight: 500;
   display: inline-flex;
   align-items: center;
   transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--dda-shadow-sm);
 }
 
 .dda-vocab-word:hover {
-  background: #0366d6;
+  background: var(--dda-accent-primary);
   color: #ffffff;
-  border-color: #0366d6;
+  border-color: var(--dda-accent-primary);
   transform: translateY(-1px);
-  box-shadow: 0 2px 5px rgba(3, 102, 214, 0.2);
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.25);
 }
 
 @keyframes ddaPopoverSlide {
@@ -444,35 +697,47 @@
   }
 }
 
+/* ==========================================================================
+   Diff Container
+   ========================================================================== */
 .dda-diff-container {
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 4px;
+  background: var(--dda-diff-bg);
+  padding: 14px;
+  border-radius: 8px;
   margin-bottom: 10px;
-  font-size: 15px;
-  line-height: 1.5;
-  border: 1px solid #dee2e6;
-}
-.dda-diff-correct {
-  color: #198754;
-}
-.dda-diff-missing {
-  color: #dc3545;
-  text-decoration: line-through;
-  background: #f8d7da;
-  padding: 0 4px;
-  margin: 0 2px;
-  border-radius: 3px;
-}
-.dda-diff-wrong {
-  color: #fd7e14;
-  background: #fff3cd;
-  padding: 0 4px;
-  margin: 0 2px;
-  border-radius: 3px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  border: 1px solid var(--dda-diff-border);
+  color: var(--dda-text-primary);
 }
 
-/* Hide DailyDictation native input highlight layer */
+.dda-diff-correct {
+  color: var(--dda-diff-correct);
+  font-weight: 600;
+}
+
+.dda-diff-missing {
+  color: var(--dda-diff-missing-text);
+  text-decoration: line-through;
+  background: var(--dda-diff-missing-bg);
+  padding: 1px 6px;
+  margin: 0 2px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.dda-diff-wrong {
+  color: var(--dda-diff-wrong-text);
+  background: var(--dda-diff-wrong-bg);
+  padding: 1px 6px;
+  margin: 0 2px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Hide DailyDictation native input highlight layer
+   ========================================================================== */
 .dictation__input-highlight,
 #dictation__input-highlight,
 [class*="dictation__input-highlight"] {
@@ -496,94 +761,5 @@
   }
   .dda-btn-peek {
     justify-content: center;
-  }
-}
-
-/* ==========================================================================
-   Adaptive Dark Mode Theme
-   ========================================================================== */
-@media (prefers-color-scheme: dark) {
-  .dda-btn {
-    background: #1e293b;
-    border-color: #334155;
-    color: #cbd5e1;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  }
-  .dda-btn:hover {
-    background: #334155;
-    border-color: #475569;
-    color: #f8fafc;
-  }
-  .dda-btn-peek.dda-level-subtle {
-    background: #1e293b;
-    border-color: #334155;
-    color: #94a3b8;
-  }
-  .dda-btn-peek.dda-level-subtle:hover {
-    background: #334155;
-    color: #f1f5f9;
-  }
-  .dda-vocab-panel {
-    background: rgba(30, 58, 138, 0.25);
-    border-color: rgba(96, 165, 250, 0.35);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  }
-  .dda-vocab-panel:hover,
-  .dda-vocab-panel.dda-active {
-    background: rgba(30, 58, 138, 0.4);
-    border-color: rgba(96, 165, 250, 0.6);
-  }
-  .dda-vocab-text,
-  .dda-vocab-title {
-    color: #93c5fd;
-  }
-  .dda-vocab-count-badge {
-    background: #3b82f6;
-  }
-  .dda-vocab-toggle-icon {
-    color: #60a5fa;
-  }
-  .dda-vocab-popover,
-  .dda-transcript-popover {
-    background: #0f172a;
-    border-color: #334155;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.2);
-    color: #f8fafc;
-  }
-  .dda-vocab-popover-header,
-  .dda-transcript-popover-header {
-    background: #1e293b;
-    border-bottom-color: #334155;
-  }
-  .dda-vocab-popover-title,
-  .dda-popover-close-btn {
-    color: #e2e8f0;
-  }
-  .dda-vocab-word {
-    background: #1e293b;
-    border-color: #334155;
-    color: #93c5fd;
-  }
-  .dda-vocab-word:hover {
-    background: #2563eb;
-    color: #ffffff;
-    border-color: #60a5fa;
-  }
-  .dda-current-sentence-box {
-    background: #1e293b;
-    border-color: #334155;
-    color: #f1f5f9;
-  }
-  .dda-sentence-item {
-    color: #cbd5e1;
-    border-bottom-color: #1e293b;
-  }
-  .dda-sentence-item:hover {
-    background: #1e293b;
-  }
-  .dda-popover-footer {
-    background: #1e293b;
-    border-top-color: #334155;
-    color: #94a3b8;
   }
 }

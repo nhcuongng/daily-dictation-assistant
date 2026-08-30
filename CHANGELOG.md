@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-08-30 (Phase 2.1: Single-Row Toolbar & DailyDictation Adaptive Theme)
+
+### Added
+- **Single-Row Unified Actions Toolbar**: Combined Word Bank panel and Progressive Peek Transcript button into a single horizontal row (`.dda-actions-container`) above the textarea, maximizing vertical screen real estate.
+- **Responsive Toolbar Layout**: Added `@media (max-width: 560px)` breakpoint stacking controls vertically on mobile screens.
+- **Word Bank Text Truncation**: Added `text-overflow: ellipsis` on CTA tips to prevent overflow and keep Peek button layout stable.
+- **Design Tokens Architecture**: Refactored entire styling into CSS custom properties (`--dda-bg-*`, `--dda-border-*`, `--dda-text-*`, `--dda-accent-*`, `--dda-peek-*`, `--dda-diff-*`).
+- **DailyDictation Theme Synchronization**:
+  - Automatically matches DailyDictation's Bootstrap 5 theme (`[data-bs-theme="light"]` and `[data-bs-theme="dark"]`).
+  - Real-time reactive theme updates when toggling the Sun/Moon theme switcher on DailyDictation without page refresh.
+  - Fallback support for OS/browser `prefers-color-scheme`.
+- **Refined Light Theme**: High-contrast, clean light mode styling with subtle layered elevation shadows, pastel chip tags, and polished micro-interactions.
+
+---
+
 ## [1.0.0] - 2026-08-30 (Phase 1 & Phase 2 Complete)
 
 ### Added
