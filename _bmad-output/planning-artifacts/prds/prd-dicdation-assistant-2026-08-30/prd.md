@@ -40,64 +40,42 @@ Một tiện ích mở rộng (Chrome Extension) giúp loại bỏ hoàn toàn "
 - **Khung nhập liệu (Textarea)**: Vùng để người dùng gõ văn bản dictation.
 - **Vocab Prep**: Tính năng trích xuất và hiển thị trước từ vựng từ Transcript.
 
-## 4. Features
+## 4. Features & Implementation Status
 
-### 4.1 Core Workflow: Điều khiển âm thanh và Phím tắt (Giai đoạn 1 - MVP)
-**Description:** Đưa quyền kiểm soát audio lên bàn phím và trực quan hóa thanh chỉnh tốc độ ra ngoài màn hình chính để người dùng không phải click qua nhiều menu. Realizes UJ-1.
+### 4.1 Core Workflow: Điều khiển âm thanh và Phím tắt (Phase 1 - Completed ✅)
+- **FR-1: Thanh trượt tốc độ (Speed Slider)**: Tích hợp thanh trượt 0.5x - 1.5x ngay cạnh audio player.
+- **FR-2: Ẩn thanh tốc độ mặc định**: Ẩn các dropdown 1x/1.5x của DailyDictation để giao diện gọn gàng.
 
-**Functional Requirements:**
-#### FR-1: Thanh trượt tốc độ (Speed Slider)
-- Extension phải chèn một thanh trượt (slider) tốc độ phát audio (từ 0.5x đến 1.5x, bước nhảy 0.1x) vào giao diện của trang web, ngay cạnh vùng Audio Player.
-#### FR-2: Phím tắt Play/Pause
-- Người dùng có thể nhấn tổ hợp phím tắt `Ctrl + Shift + Space` để Play/Pause audio bất kỳ lúc nào dù con trỏ chuột đang ở đâu. (Extension sẽ can thiệp vào event listener toàn cục của trang web để bắt sự kiện này).
+### 4.2 Deep Learning Loop & UX Cải Tiến (Phase 2 - Completed ✅)
+- **FR-3: Vocab Prep Floating Popover (Zero Layout Shift)**:
+  - Thanh gợi ý từ vựng đính kèm mở ra Floating Popover nổi trên trang web, loại bỏ 100% layout shift.
+  - Tự động trích xuất từ vựng từ `appGlobals` và accordion, lọc stop words.
+  - Kho 12+ câu Call to Action tiếng Anh truyền cảm hứng ngẫu nhiên.
+- **FR-4: Progressive Peek Transcript (Cứu trợ theo số lần sai)**:
+  - Nút bấm thay đổi 3 cấp độ theo số lần nộp bài sai:
+    - **Level 0 (0-2 lần)**: Mờ nhạt (`subtle`, khuyến khích tự nghe).
+    - **Level 1 (3-5 lần)**: Vàng cảnh báo (`warning ⚠️`).
+    - **Level 2 (>= 6 lần)**: Đỏ rực cháy (`fire 🔥`, giải cứu khẩn cấp).
+  - **Thanh Progress Bar ở mép trên nút (`top: 0`)**: Phản chiếu trực quan tiến trình sai (0% ➡️ 50% ➡️ 100%).
+  - **Dual-Mode Floating Popover**:
+    - *Tab 1 (Current Sentence)*: Xem nhanh câu thoại của câu/challenge hiện tại.
+    - *Tab 2 (Full Transcript)*: Xem toàn bài và in đậm nổi bật câu hiện tại.
+  - Quản lý số lần sai theo từng câu riêng biệt và tự động reset khi chuyển câu mới trong SPA.
+- **FR-5: Triệt tiêu lớp highlight mặc định**:
+  - Ẩn hoàn toàn phần tử `.dictation__input-highlight` của DailyDictation để khung gõ luôn sạch sẽ.
+- **FR-6: Quy chuẩn Extension UI 100% Tiếng Anh**:
+  - Toàn bộ text, buttons, tooltips, CTA tips và badges sử dụng 100% tiếng Anh.
 
-### 4.2 Deep Learning Loop: Trải nghiệm học sâu (Giai đoạn 2)
-**Description:** Cung cấp công cụ để người dùng học chủ động: chuẩn bị từ vựng, dọn dẹp để làm lại, và so sánh kết quả. Realizes UJ-2, UJ-3.
+### 4.3 Các Tính Năng Đã Tinh Chỉnh / Tạm Hoãn (Adjustments & Deferred)
+- **Clear Text & Pin Button**: Đã loại bỏ hoàn toàn theo phản hồi người dùng để giữ giao diện tối giản.
+- **Check Errors (Diff Button)**: Tạm hoãn (Deferred) đưa ra khỏi UI ở Phase 2, chỉ giữ cơ chế đếm lỗi khi nộp bài trên DailyDictation.
 
-**Functional Requirements:**
-#### FR-3: Nút Clear Text (Xóa và thử lại)
-- Extension chèn một nút (icon) bên cạnh khung nhập liệu. Khi nhấn, nó sẽ xóa toàn bộ nội dung trong khung nhập liệu hiện tại.
-#### FR-4: Hiển thị nhanh Transcript
-- Thêm một nút bật/tắt Transcript ngay cạnh vùng ghi chú. Nút này cho phép xem lén Transcript mà không cần cuộn trang hay bấm nhiều lần.
-#### FR-5: Trích xuất từ vựng (Vocab Prep)
-- Cung cấp một panel hiển thị danh sách từ vựng được rút trích từ Transcript. Sử dụng thuật toán lọc cơ bản ngay trên Extension: bỏ qua các stop-words (a, an, the...) và chỉ lấy các từ có độ dài trên 4 ký tự, không cần gọi API AI bên ngoài để tối ưu tốc độ và chi phí.
-#### FR-6: Báo cáo từ sai (Post-Exercise Review)
-- Khi kết thúc bài, thuật toán so khớp (diff) sẽ chạy để so sánh văn bản người dùng gõ và transcript, làm nổi bật (highlight) các từ gõ sai nhiều nhất.
-
-### 4.3 Motivation & Tracking: Động lực và Thống kê (Giai đoạn 3)
-**Description:** Giữ chân người dùng bằng các số liệu và mục tiêu.
-**Functional Requirements:**
-- **FR-7**: Theo dõi và lưu trữ (Local Storage) thời gian học mỗi ngày và số lỗi sai.
-- **FR-8**: Đặt mục tiêu hàng ngày (VD: 30 phút, 2 tiếng) và hiển thị thanh tiến độ (Progress bar).
-- **FR-9**: Cung cấp giao diện báo cáo (Report) đơn giản hiển thị số ngày học liên tục (Streak).
+### 4.4 Motivation & Tracking: Động lực và Thống kê (Phase 3 - Upcoming ⏳)
+- **FR-7**: Theo dõi thời gian học và thống kê lỗi sai hàng ngày.
+- **FR-8**: Đặt mục tiêu hàng ngày (Daily Target) và thanh tiến độ.
+- **FR-9**: Báo cáo chuỗi ngày học liên tục (Streak Tracking).
 
 ## 5. Non-Goals (Explicit)
-
-- **Không thay thế UI gốc của dailydictation.com**: Extension chỉ "tiêm" (inject) thêm các công cụ bổ trợ, không viết lại toàn bộ giao diện của trang web.
-- **Không có backend phức tạp trong V1**: Mọi dữ liệu lịch sử học tập (History/Report) ở Giai đoạn 3 sẽ được lưu hoàn toàn tại Local Storage của trình duyệt. Không yêu cầu đồng bộ qua tài khoản Google hay cloud.
-- **Không thu phí (trước mắt)**: Tập trung vào thu hút người dùng trên Chrome Web Store (Free).
-
-## 6. MVP Scope
-
-### 6.1 In Scope (Phase 1)
-- Thanh trượt chỉnh tốc độ (FR-1).
-- Phím tắt bật/tắt âm thanh (FR-2).
-- *Lý do: Đây là các "Quick Wins" có Tác động rất cao và Nỗ lực lập trình thấp, giải quyết nỗi đau lớn nhất của người dùng.*
-
-### 6.2 Out of Scope for MVP
-- Tính năng Vocab Prep (FR-5), Xóa thử lại (FR-3) -> *Chuyển sang Phase 2*.
-- Tính năng so khớp từ sai (FR-6) -> *Chuyển sang Phase 2*.
-- Toàn bộ tính năng Thống kê, Lịch sử, Báo cáo (Phase 3) -> *[NOTE FOR PM] Tính năng báo cáo tốn nhiều công sức làm UI và quản lý dữ liệu, sẽ làm chậm tiến độ ra mắt bản MVP.*
-
-## 7. Success Metrics
-
-**Primary**
-- **SM-1: Daily Active Users (DAU)**. Target: Đạt 100 người dùng tích cực mỗi ngày trong tháng đầu tiên trên Chrome Web Store.
-- **SM-2: Tần suất sử dụng phím tắt & thanh tốc độ**. Target: Tính năng được kích hoạt ít nhất 10 lần trên mỗi bài tập (chứng tỏ nó giải quyết đúng nhu cầu).
-
-## 8. Open Questions
-
-1. Thuật toán phân tích lỗi sai (Diff) ở Phase 2 nên tự viết hay dùng một thư viện Javascript mã nguồn mở có sẵn?
-
-## 9. Assumptions Index
-- Không còn Assumption nào chưa được xác nhận. Mọi giả định kỹ thuật đã được chốt (Ctrl+Shift+Space, LocalStorage, Lọc từ vựng cơ bản, Inject UI qua thẻ ID cố định).
+- Không thay thế UI gốc của dailydictation.com.
+- Không có backend phức tạp trong V1 (lưu trữ hoàn toàn tại Local Storage).
+- Miễn phí 100% trên Chrome Web Store.

@@ -69,5 +69,6 @@ Dự án này tuân thủ quy trình 2 giai đoạn: **Lập kế hoạch trư�
 
 ---
 
-## 3. Ngôn Ngữ Giao Tiếp (Communication)
+## 3. Ngôn Ngữ Giao Tiếp & Quy Chuẩn UI (Communication & UI Rules)
 - Mặc định sử dụng **Tiếng Việt** trong giao tiếp và tài liệu trừ khi có yêu cầu cụ thể khác.
+- **Quy chuẩn giao diện Extension (Extension UI Standard)**: Toàn bộ giao diện người dùng (UI text, buttons, labels, tooltips, badges, CTA tips, feedback messages) của Extension **bắt buộc luôn luôn sử dụng 100% Tiếng Anh (English)**.

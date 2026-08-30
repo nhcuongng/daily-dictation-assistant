@@ -16,8 +16,16 @@ function startObserver() {
       });
     }
 
+    // Hide DailyDictation native input highlight layer if present
+    const highlightElements = document.querySelectorAll('.dictation__input-highlight, #dictation__input-highlight, [class*="dictation__input-highlight"]');
+    highlightElements.forEach(el => {
+      el.style.display = 'none';
+      el.style.visibility = 'hidden';
+      el.style.opacity = '0';
+    });
+
     // If the UI is already rendered and still in the DOM, do nothing
-    if (window.ddaAudioControl && document.querySelector('.dda-speed-control')) {
+    if (window.ddaAudioControl && document.querySelector('.dda-speed-control') && document.querySelector('.dda-actions-container')) {
       return;
     }
 

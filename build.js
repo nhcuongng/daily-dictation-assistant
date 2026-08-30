@@ -13,7 +13,8 @@ if (!fs.existsSync(distDir)) {
 function copyStaticFiles() {
   const staticFiles = [
     { src: 'manifest.json', dest: 'dist/manifest.json' },
-    { src: 'styles', dest: 'dist/styles', isDir: true }
+    { src: 'styles', dest: 'dist/styles', isDir: true },
+    { src: 'icons', dest: 'dist/icons', isDir: true }
   ];
 
   staticFiles.forEach(file => {
@@ -37,7 +38,13 @@ async function build() {
 
   // Configure esbuild
   const buildOptions = {
-    entryPoints: ['scripts/audio-control.js', 'scripts/content.js'],
+    entryPoints: [
+      'scripts/audio-control.js',
+      'scripts/vocab-prep.js',
+      'scripts/diff-engine.js',
+      'scripts/deep-learning.js',
+      'scripts/content.js'
+    ],
     bundle: true, // Will bundle if there are imports, otherwise just transpile
     minify: !isDev,
     outdir: 'dist/scripts',

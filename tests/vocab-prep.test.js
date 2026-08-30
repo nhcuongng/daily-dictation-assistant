@@ -4,8 +4,13 @@ describe('VocabPrep', () => {
   let prep;
 
   beforeEach(() => {
-    // Jest with JSDOM creates a window, but we should clear it if needed.
+    document.body.innerHTML = '';
     prep = new VocabPrep();
+  });
+
+  afterEach(() => {
+    if (prep) prep.closePopup();
+    document.body.innerHTML = '';
   });
 
   test('extracts words correctly, ignoring punctuation and casing', () => {
@@ -36,20 +41,98 @@ describe('VocabPrep', () => {
     expect(vocab).not.toContain('because');
   });
 
-  test('renders vocab panel to DOM container', () => {
+  test('renders fixed-height trigger panel to DOM container', () => {
     const container = document.createElement('div');
     const text = 'Listen to the beautiful symphony';
-    prep.renderPanel(text, container);
+    const panel = prep.renderPanel(text, container);
 
-    const panel = container.querySelector('.dda-vocab-panel');
     expect(panel).not.toBeNull();
+    expect(panel.classList.contains('dda-vocab-panel')).toBe(true);
     
-    const words = container.querySelectorAll('.dda-vocab-word');
+    const badge = panel.querySelector('.dda-vocab-count-badge');
+    expect(badge.textContent).toBe('3 words');
+  });
+
+  test('opens anchored popover on panel click and displays vocabulary words', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+
+    panel.click();
+
+    expect(prep.isPopupOpen()).toBe(true);
+    const popover = document.querySelector('.dda-vocab-popover');
+    expect(popover).not.toBeNull();
+
+    const words = popover.querySelectorAll('.dda-vocab-word');
     expect(words.length).toBe(3); // listen, beautiful, symphony
-    
+
     const extracted = Array.from(words).map(w => w.textContent);
     expect(extracted).toContain('listen');
     expect(extracted).toContain('beautiful');
     expect(extracted).toContain('symphony');
+  });
+
+  test('toggles popover when clicking panel repeatedly', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+
+    panel.click();
+    expect(prep.isPopupOpen()).toBe(true);
+
+    panel.click();
+    expect(prep.isPopupOpen()).toBe(false);
+  });
+
+  test('closes popover on close button click', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+    panel.click();
+
+    expect(prep.isPopupOpen()).toBe(true);
+    const closeBtn = document.querySelector('.dda-popover-close-btn');
+    closeBtn.click();
+
+    expect(prep.isPopupOpen()).toBe(false);
+    expect(document.querySelector('.dda-vocab-popover')).toBeNull();
+  });
+
+  test('closes popover on click outside', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+    panel.click();
+
+    expect(prep.isPopupOpen()).toBe(true);
+
+    // Click outside
+    const outsideEl = document.createElement('div');
+    document.body.appendChild(outsideEl);
+    outsideEl.click();
+
+    expect(prep.isPopupOpen()).toBe(false);
+  });
+
+  test('closes popover on Escape key press', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+    panel.click();
+
+    expect(prep.isPopupOpen()).toBe(true);
+
+    const event = new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape' });
+    document.dispatchEvent(event);
+
+    expect(prep.isPopupOpen()).toBe(false);
+  });
+
+  test('provides English tips catalog and random tip selection', () => {
+    expect(prep.tips.length).toBeGreaterThanOrEqual(10);
+    const tip = prep.getRandomTip();
+    expect(typeof tip).toBe('string');
+    expect(prep.tips).toContain(tip);
   });
 });
