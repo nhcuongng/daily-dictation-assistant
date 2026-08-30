@@ -44,13 +44,24 @@ describe('VocabPrep', () => {
   test('renders fixed-height trigger panel to DOM container', () => {
     const container = document.createElement('div');
     const text = 'Listen to the beautiful symphony';
-    const panel = prep.renderPanel(text, container);
+    const panel = prep.renderPanel(text, container, { customTip: '✨ Word Bank: Explore key vocabulary' });
 
     expect(panel).not.toBeNull();
     expect(panel.classList.contains('dda-vocab-panel')).toBe(true);
     
+    const vocabText = panel.querySelector('.dda-vocab-text');
+    expect(vocabText).not.toBeNull();
+    expect(vocabText.getAttribute('title')).toBe('✨ Word Bank: Explore key vocabulary');
+    expect(vocabText.textContent).toContain('✨ Word Bank: Explore key vocabulary');
+
+    const actions = panel.querySelector('.dda-vocab-actions');
+    expect(actions).not.toBeNull();
+
     const badge = panel.querySelector('.dda-vocab-count-badge');
     expect(badge.textContent).toBe('3 words');
+
+    const toggleIcon = panel.querySelector('.dda-vocab-toggle-icon');
+    expect(toggleIcon).not.toBeNull();
   });
 
   test('opens anchored popover on panel click and displays vocabulary words', () => {

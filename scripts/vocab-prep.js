@@ -54,11 +54,13 @@ class VocabPrep {
     panel.className = 'dda-vocab-panel';
     panel.title = 'Click to view vocabulary words (Floating popup)';
     panel.innerHTML = `
-      <div class="dda-vocab-title">
+      <div class="dda-vocab-text dda-vocab-title" title="${tipText}">
         <span>${tipText}</span>
-        <span class="dda-vocab-count-badge">${words.length} words</span>
       </div>
-      <span class="dda-vocab-toggle-icon">▼</span>
+      <div class="dda-vocab-actions">
+        <span class="dda-vocab-count-badge">${words.length} words</span>
+        <span class="dda-vocab-toggle-icon">▼</span>
+      </div>
     `;
 
     panel.addEventListener('click', (e) => {

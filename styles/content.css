@@ -30,24 +30,31 @@
 .dda-actions-container {
   position: relative;
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 10px;
 }
 .dda-btn {
-  background: #f8f9fa;
-  border: 1px solid #ced4da;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
-  display: flex;
+  font-size: 12.5px;
+  font-weight: 500;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #333;
-  transition: all 0.2s ease;
+  color: #334155;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  user-select: none;
 }
 .dda-btn:hover {
-  background: #e9ecef;
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .dda-btn-peek {
@@ -244,57 +251,76 @@
 .dda-vocab-wrapper {
   position: relative;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .dda-vocab-panel {
   background: #f0f7ff;
-  border: 1px solid #c8e1ff;
+  border: 1px solid #bfdbfe;
   border-radius: 8px;
   font-size: 13px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05);
   cursor: pointer;
   user-select: none;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 7px 12px;
 }
 
 .dda-vocab-panel:hover,
 .dda-vocab-panel.dda-active {
-  background: #e1effe;
-  border-color: #a4cafe;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+  background: #e0f2fe;
+  border-color: #93c5fd;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.12);
 }
 
+.dda-vocab-text,
 .dda-vocab-title {
   display: flex;
   align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #1d4ed8;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dda-vocab-actions {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  font-weight: 600;
-  color: #0366d6;
+  flex-shrink: 0;
 }
 
 .dda-vocab-count-badge {
-  background: #0366d6;
-  color: white;
+  background: #2563eb;
+  color: #ffffff;
   font-size: 11px;
-  padding: 1px 7px;
-  border-radius: 12px;
+  line-height: 1;
+  padding: 3px 8px;
+  border-radius: 9999px;
   font-weight: 600;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
 }
 
 .dda-vocab-toggle-icon {
-  font-size: 13px;
-  color: #0366d6;
-  transition: transform 0.2s ease;
+  font-size: 11px;
+  color: #2563eb;
+  transition: transform 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
 }
 
 .dda-vocab-panel:hover .dda-vocab-toggle-icon,
 .dda-vocab-panel.dda-active .dda-vocab-toggle-icon {
-  transform: scale(1.15);
+  transform: scale(1.18);
+  color: #1d4ed8;
 }
 
 /* Anchored Floating Popover */
