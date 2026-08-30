@@ -25,6 +25,11 @@ function startObserver() {
     if (audioEl && window.ddaAudioControl) {
       window.ddaAudioControl.init();
     }
+
+    // Init deep learning loop UI
+    if (window.DeepLearningLoop) {
+      window.DeepLearningLoop.init();
+    }
   });
 
   // Watch the whole body for changes
@@ -36,6 +41,9 @@ function startObserver() {
   // Also try once immediately in case it's already there
   if (window.ddaAudioControl) {
     window.ddaAudioControl.init();
+  }
+  if (window.DeepLearningLoop) {
+    window.DeepLearningLoop.init();
   }
 }
 

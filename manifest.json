@@ -13,7 +13,13 @@
     {
       "matches": ["*://*.dailydictation.com/*"],
       "css": ["styles/content.css"],
-      "js": ["scripts/audio-control.js", "scripts/content.js"]
+      "js": [
+        "scripts/audio-control.js",
+        "scripts/vocab-prep.js",
+        "scripts/diff-engine.js",
+        "scripts/deep-learning.js",
+        "scripts/content.js"
+      ]
     }
   ]
 }
