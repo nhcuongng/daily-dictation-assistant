@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "policy": "node scripts/policy-check.js",
     "build": "node build.js",
     "dev": "node build.js --watch"
   },
