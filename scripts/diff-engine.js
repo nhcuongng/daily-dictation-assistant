@@ -65,3 +65,6 @@ class DiffEngine {
   }
 }
 window.DiffEngine = DiffEngine;
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = DiffEngine;
+}

@@ -31,3 +31,6 @@ class VocabPrep {
   }
 }
 window.VocabPrep = new VocabPrep();
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = VocabPrep;
+}

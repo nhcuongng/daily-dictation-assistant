@@ -4,8 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test": "jest",
     "build": "node build.js",
     "dev": "node build.js --watch"
+  },
+  "jest": {
+    "testEnvironment": "jsdom"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +18,8 @@
   "devDependencies": {
     "chokidar-cli": "^3.0.0",
     "cpx2": "^9.0.0",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "jest": "^30.5.0",
+    "jest-environment-jsdom": "^30.5.0"
   }
 }
