@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-31 (Phase 1.1: Compact Speed Pill & Visual Customizable Presets)
+
+### Added
+- **Compact Speed Trigger Pill**: Replaced the bulky native HTML5 range slider with a sleek, pill-shaped button (`[ ⚡ 1.0x ▾ ]`) embedded seamlessly next to the native audio player.
+- **Speed Popover Panel**: Added an anchored floating popover with smooth entrance animations, elevation shadows, and full dark/light theme support.
+  - **Quick Presets Grid**: 1-click speed selection chips (`0.75x`, `0.85x`, `1.0x`, `1.15x`, `1.25x`, `1.5x`) with active speed highlight.
+  - **Fine-Tuning Slider**: Smooth continuous slider ranging from `0.5x` to `2.0x` (step `0.05x`) for precision adjustments.
+  - **Quick Reset (1.0x)**: Dedicated `↺ Reset 1.0x` button in popover header and instant reset via double-click on the trigger pill.
+- **Visual Custom Presets Configuration (`⚙️ Custom Presets`)**:
+  - Interactive preset slots with individual mini-sliders (`0.5x` to `2.0x`) and live number badges—eliminating keyboard typing friction.
+  - `＋ Add Preset` (up to 8 slots) and `✕` remove button per slot.
+  - `↺ Defaults` button to restore the standard 6 preset speeds.
+  - Real-time two-way synchronization between preset sliders and the Quick Presets grid.
+- **Persistent Storage**: Playback speed and custom presets are automatically saved to and loaded from `chrome.storage.local`.
+- **Unit Test Suite**: Added 13 comprehensive Jest tests in `tests/audio-control.test.js` covering pill rendering, popover toggling, preset interactions, visual slider configuration, and storage persistence.
+
+### Changed
+- **Zero XSS Warnings**: Refactored `AudioControl` DOM creation to 100% safe APIs (`document.createElement`, `textContent`), clearing all Chrome Web Store policy scanner warnings for this module.
+
 ---
 
 ## [1.1.0] - 2026-08-30 (Phase 2.1: Single-Row Toolbar & DailyDictation Adaptive Theme)
