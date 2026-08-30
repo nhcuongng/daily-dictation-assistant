@@ -53,17 +53,19 @@ class DeepLearningLoop {
     const clearBtn = document.createElement('button');
     clearBtn.className = 'dda-btn dda-btn-clear';
     clearBtn.innerHTML = '🧹 Clear';
-    clearBtn.title = 'Clear text and try again';
+    clearBtn.title = 'Clear text (Ctrl+Backspace)';
     clearBtn.onclick = (e) => {
       e.preventDefault();
       textarea.value = '';
       textarea.focus();
+      textarea.dispatchEvent(new Event('input')); // Trigger auto-fade back
       // Try to rewind audio
       const audioEl = document.querySelector('audio');
       if (audioEl) {
         audioEl.currentTime = 0;
         audioEl.play();
       }
+      diffContainer.style.display = 'none';
     };
     
     // Peek Transcript button
@@ -90,10 +92,14 @@ class DeepLearningLoop {
     const diffBtn = document.createElement('button');
     diffBtn.className = 'dda-btn dda-btn-diff';
     diffBtn.innerHTML = '🔍 Check Errors';
+    diffBtn.title = 'Check for errors (Ctrl+Enter)';
     
     const diffContainer = document.createElement('div');
     diffContainer.className = 'dda-diff-container';
     diffContainer.style.display = 'none';
+
+    let lastCheckedText = '';
+    let gentleMode = true;
 
     diffBtn.onclick = (e) => {
       e.preventDefault();
@@ -105,10 +111,26 @@ class DeepLearningLoop {
         diffContainer.style.display = 'block';
         return;
       }
+
+      if (userText !== lastCheckedText) {
+        lastCheckedText = userText;
+        gentleMode = true;
+      }
       
       const diffArray = window.DiffEngine.compare(truthText, userText);
-      diffContainer.innerHTML = window.DiffEngine.renderHtml(diffArray);
-      diffContainer.style.display = 'block';
+      const errors = diffArray.filter(d => d.type === 'missing' || d.type === 'wrong').length;
+      
+      if (errors === 0) {
+        diffContainer.innerHTML = '🎉 <strong>Hoàn hảo!</strong> Không có lỗi nào.';
+        diffContainer.style.display = 'block';
+      } else if (gentleMode) {
+        diffContainer.innerHTML = `🤫 <strong>Gentle Mode:</strong> Bạn có <strong>${errors}</strong> lỗi sai hoặc thiếu. <em>(Nhấn Check lần nữa để xem chi tiết)</em>`;
+        diffContainer.style.display = 'block';
+        gentleMode = false;
+      } else {
+        diffContainer.innerHTML = window.DiffEngine.renderHtml(diffArray);
+        diffContainer.style.display = 'block';
+      }
     };
 
     container.appendChild(toggleBtn);
@@ -122,11 +144,37 @@ class DeepLearningLoop {
     textarea.parentNode.insertBefore(diffContainer, textarea);
     
     // Load Vocab Prep
-    // On SPA, the transcript might be loaded dynamically, but we'll try once here.
     const truthText = this.getTranscriptText();
     if (truthText && window.VocabPrep) {
       window.VocabPrep.renderPanel(truthText, vocabContainer);
     }
+
+    // Auto-fade Vocab Panel on typing
+    vocabContainer.style.transition = 'opacity 0.4s ease-in-out';
+    let isTyping = false;
+    textarea.addEventListener('input', () => {
+      if (textarea.value.trim().length > 0 && !isTyping) {
+        isTyping = true;
+        vocabContainer.style.opacity = '0';
+        vocabContainer.style.pointerEvents = 'none';
+      } else if (textarea.value.trim().length === 0 && isTyping) {
+        isTyping = false;
+        vocabContainer.style.opacity = '1';
+        vocabContainer.style.pointerEvents = 'auto';
+      }
+    });
+
+    // Hotkeys setup
+    textarea.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.code === 'Enter') {
+        e.preventDefault();
+        diffBtn.click();
+      }
+      if (e.ctrlKey && e.code === 'Backspace') {
+        e.preventDefault();
+        clearBtn.click();
+      }
+    });
   }
 
   getTranscriptText() {
