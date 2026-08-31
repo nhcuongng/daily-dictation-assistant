@@ -92,6 +92,10 @@ class DeepLearningLoop {
   }
 
   handleUserSubmission(userText) {
+    if (!userText || typeof userText !== 'string' || userText.trim().length === 0) {
+      return null;
+    }
+
     const truthText = this.getCurrentSentence() || this.getTranscriptText();
     if (!truthText) return null;
 
@@ -135,9 +139,9 @@ class DeepLearningLoop {
 
     let label = '👁️ Peek Transcript';
     if (level === 'warning') {
-      label = `💡 Peek Hint (${count}/6)`;
+      label = '💡 Peek Hint';
     } else if (level === 'fire') {
-      label = `🔥 Peek Rescue (${count}/6)`;
+      label = '🔥 Peek Rescue';
     }
 
     peekBtn.title = tip;

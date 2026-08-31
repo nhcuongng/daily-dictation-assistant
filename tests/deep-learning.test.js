@@ -112,7 +112,8 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
     loop.updatePeekButton();
     expect(loop.getPeekLevel(0)).toBe('warning');
     expect(loop.peekBtn.classList.contains('dda-level-warning')).toBe(true);
-    expect(loop.peekBtn.textContent).toContain('💡 Peek Hint (3/6)');
+    expect(loop.peekBtn.textContent).toContain('💡 Peek Hint');
+    expect(loop.peekBtn.textContent).not.toContain('(3/6)');
     expect(loop.peekBtn.title.length).toBeGreaterThan(0);
     bar = loop.peekBtn.querySelector('.dda-peek-progress-bar');
     expect(bar.style.width).toBe('50%');
@@ -122,7 +123,8 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
     loop.updatePeekButton();
     expect(loop.getPeekLevel(0)).toBe('fire');
     expect(loop.peekBtn.classList.contains('dda-level-fire')).toBe(true);
-    expect(loop.peekBtn.textContent).toContain('🔥 Peek Rescue (6/6)');
+    expect(loop.peekBtn.textContent).toContain('🔥 Peek Rescue');
+    expect(loop.peekBtn.textContent).not.toContain('(6/6)');
     expect(loop.peekBtn.title.length).toBeGreaterThan(0);
     bar = loop.peekBtn.querySelector('.dda-peek-progress-bar');
     expect(bar.style.width).toBe('100%');
@@ -282,5 +284,34 @@ describe('DeepLearningLoop - Real-time Challenge & Active Audio Detection', () =
 
     expect(loop.getCurrentChallengeIndex()).toBe(3); // 4th sentence -> index 3
     expect(loop.getCurrentSentence()).toBe('Sentence 4.');
+  });
+
+  test('handleUserSubmission only counts wrong attempts when user submits non-empty incorrect text', () => {
+    const script = document.createElement('script');
+    script.textContent = `window.appGlobals = ${JSON.stringify({ challenges: [{ position: 1, content: 'Hello world.' }] })};`;
+    document.body.appendChild(script);
+
+    // Empty strings should return null and not increment
+    expect(loop.handleUserSubmission('')).toBeNull();
+    expect(loop.handleUserSubmission('   ')).toBeNull();
+    expect(loop.getWrongAttemptsCount(0)).toBe(0);
+
+    // Mock DiffEngine
+    window.DiffEngine = {
+      compare: (truth, user) => truth.trim() === user.trim() ? [] : [{ type: 'wrong', word: 'x' }]
+    };
+
+    // Submitting wrong text increments wrong attempts
+    const result1 = loop.handleUserSubmission('wrong answer');
+    expect(result1).not.toBeNull();
+    expect(result1.isCorrect).toBe(false);
+    expect(loop.getWrongAttemptsCount(0)).toBe(1);
+
+    // Submitting correct text resets wrong attempts
+    const truth = loop.getCurrentSentence();
+    const result2 = loop.handleUserSubmission(truth);
+    expect(result2).not.toBeNull();
+    expect(result2.isCorrect).toBe(true);
+    expect(loop.getWrongAttemptsCount(0)).toBe(0);
   });
 });
