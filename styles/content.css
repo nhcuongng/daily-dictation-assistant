@@ -951,66 +951,11 @@ body[data-bs-theme="dark"] {
   width: 100%;
 }
 
-.dda-vocab-hint-bar {
-  font-size: 11.5px;
-  color: var(--dda-text-muted);
-  display: flex;
-  align-items: center;
-}
-
-.dda-vocab-dict-selector {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--dda-border);
-  padding: 2px 4px;
-  border-radius: 6px;
-}
-
-.dda-vocab-dict-label {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--dda-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  padding-left: 2px;
-}
-
-.dda-vocab-dict-options {
-  display: flex;
-  gap: 2px;
-}
-
-.dda-dict-btn {
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--dda-text-muted);
-  padding: 2px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  line-height: 1.3;
-}
-
-.dda-dict-btn:hover {
-  color: var(--dda-text-primary);
-  background: var(--dda-bg-hover);
-}
-
-.dda-dict-btn.active {
-  background: var(--dda-bg-surface);
-  color: var(--dda-accent-primary);
-  font-weight: 600;
-  box-shadow: var(--dda-shadow-sm);
-}
-
-.dda-vocab-ext-title {
+.dda-vocab-header-title {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--dda-text-primary);
 }
@@ -1032,6 +977,107 @@ body[data-bs-theme="dark"] {
   color: var(--dda-text-primary);
 }
 
+/* Vocab Popover 2-Tab Switcher */
+.dda-vocab-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--dda-border);
+  padding: 3px;
+  border-radius: 8px;
+  margin-top: 2px;
+}
+
+.dda-vocab-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--dda-text-muted);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.3;
+}
+
+.dda-vocab-tab-btn:hover {
+  color: var(--dda-text-primary);
+  background: var(--dda-bg-hover);
+}
+
+.dda-vocab-tab-btn.active {
+  background: var(--dda-bg-surface);
+  color: var(--dda-accent-primary);
+  font-weight: 600;
+  box-shadow: var(--dda-shadow-sm);
+}
+
+.dda-vocab-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--dda-accent-primary);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 16px;
+  line-height: 1.2;
+}
+
+.dda-vocab-tab-btn.active .dda-vocab-tab-count {
+  background: var(--dda-accent-primary);
+  color: #ffffff;
+}
+
+/* Mini POS Filter Bar in All Words Tab */
+.dda-vocab-pos-filters {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 4px 0 2px 0;
+  align-items: center;
+}
+
+.dda-pos-filter-btn {
+  background: var(--dda-bg-surface);
+  border: 1px solid var(--dda-border);
+  color: var(--dda-text-muted);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.dda-pos-filter-btn:hover {
+  color: var(--dda-text-primary);
+  border-color: var(--dda-accent-primary);
+}
+
+.dda-pos-filter-btn.active {
+  background: var(--dda-accent-primary);
+  color: #ffffff;
+  border-color: var(--dda-accent-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.2);
+}
+
+.dda-vocab-empty-msg {
+  font-size: 12px;
+  color: var(--dda-text-muted);
+  font-style: italic;
+  padding: 8px 4px;
+}
+
 .dda-vocab-popover-body {
   padding: 14px;
   max-height: 280px;
@@ -1039,7 +1085,7 @@ body[data-bs-theme="dark"] {
 }
 
 .dda-vocab-popover-footer {
-  padding: 6px 14px;
+  padding: 8px 14px;
   background: var(--dda-bg-subtle);
   border-top: 1px solid var(--dda-border);
   font-size: 11px;
@@ -1050,9 +1096,75 @@ body[data-bs-theme="dark"] {
   gap: 8px;
 }
 
+.dda-vocab-footer-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.dda-vocab-dict-selector {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--dda-border);
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.dda-vocab-dict-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--dda-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding-left: 2px;
+}
+
+.dda-vocab-dict-options {
+  display: flex;
+  gap: 2px;
+}
+
+.dda-dict-btn {
+  background: transparent;
+  border: none;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--dda-text-muted);
+  padding: 1px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.3;
+}
+
+.dda-dict-btn:hover {
+  color: var(--dda-text-primary);
+  background: var(--dda-bg-hover);
+}
+
+.dda-dict-btn.active {
+  background: var(--dda-bg-surface);
+  color: var(--dda-accent-primary);
+  font-weight: 600;
+  box-shadow: var(--dda-shadow-sm);
+}
+
 .dda-vocab-ext-promo {
   font-size: 10.5px;
   color: var(--dda-text-muted);
+}
+
+.dda-vocab-ext-active-hint {
+  font-size: 10.5px;
+  color: var(--dda-text-muted);
+}
+
+.dda-esc-hint {
+  font-size: 10.5px;
+  color: var(--dda-text-muted);
+  white-space: nowrap;
 }
 
 .dda-ext-promo-link {
@@ -1075,14 +1187,15 @@ body[data-bs-theme="dark"] {
 
 .dda-vocab-word {
   background: var(--dda-bg-hover);
-  color: var(--dda-accent-primary);
+  color: var(--dda-text-primary);
   border: 1px solid var(--dda-border);
-  padding: 4px 10px;
+  padding: 4px 9px;
   border-radius: 14px;
   font-size: 12px;
   font-weight: 500;
   display: inline-flex;
   align-items: center;
+  gap: 5px;
   transition: all 0.15s ease;
   box-shadow: var(--dda-shadow-sm);
   cursor: pointer;
@@ -1100,6 +1213,82 @@ body[data-bs-theme="dark"] {
 
 .dda-vocab-word:active {
   transform: translateY(0);
+}
+
+/* Part of Speech (POS) Badge */
+.dda-vocab-pos {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: lowercase;
+  padding: 1px 4.5px;
+  border-radius: 4px;
+  line-height: 1.1;
+  letter-spacing: 0.2px;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+/* Noun: Soft Blue */
+.dda-pos-n {
+  background: rgba(37, 99, 235, 0.15);
+  color: #1d4ed8;
+}
+
+/* Verb: Soft Emerald */
+.dda-pos-v {
+  background: rgba(16, 185, 129, 0.16);
+  color: #047857;
+}
+
+/* Adjective: Soft Amber / Orange */
+.dda-pos-adj {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+}
+
+/* Adverb: Soft Purple */
+.dda-pos-adv {
+  background: rgba(139, 92, 246, 0.16);
+  color: #6d28d9;
+}
+
+/* Preposition & Other: Neutral Slate */
+.dda-pos-prep,
+.dda-pos-pron,
+.dda-pos-conj,
+.dda-pos-interj,
+.dda-pos-num {
+  background: rgba(100, 116, 139, 0.15);
+  color: #475569;
+}
+
+/* Word chip hover reverses POS badge color nicely */
+.dda-vocab-word:hover .dda-vocab-pos {
+  background: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .dda-pos-n {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+}
+[data-theme="dark"] .dda-pos-v {
+  background: rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+}
+[data-theme="dark"] .dda-pos-adj {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fcd34d;
+}
+[data-theme="dark"] .dda-pos-adv {
+  background: rgba(139, 92, 246, 0.25);
+  color: #c4b5fd;
+}
+[data-theme="dark"] .dda-pos-prep,
+[data-theme="dark"] .dda-pos-pron,
+[data-theme="dark"] .dda-pos-conj {
+  background: rgba(148, 163, 184, 0.25);
+  color: #cbd5e1;
 }
 
 @keyframes ddaPopoverSlide {
