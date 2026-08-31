@@ -18,6 +18,142 @@ class VocabPrep {
       '🎯 Key Vocab: Preview story words',
       '✨ Word Bank: Explore lesson words'
     ];
+
+    this.dictionaryProviders = {
+      cambridge: {
+        id: 'cambridge',
+        name: 'Cambridge',
+        fullName: 'Cambridge Dictionary',
+        getUrl: (w) => `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(w)}`
+      },
+      vocabulary: {
+        id: 'vocabulary',
+        name: 'Vocabulary.com',
+        fullName: 'Vocabulary.com',
+        getUrl: (w) => `https://www.vocabulary.com/dictionary/${encodeURIComponent(w)}`
+      }
+    };
+    this.currentProvider = 'cambridge';
+    this.loadDictionaryProvider();
+  }
+
+  loadDictionaryProvider() {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get(['dda_vocab_dict_provider'], (res) => {
+          if (res && res.dda_vocab_dict_provider && this.dictionaryProviders[res.dda_vocab_dict_provider]) {
+            this.currentProvider = res.dda_vocab_dict_provider;
+            this.updateDictionaryUI();
+          }
+        });
+      } else if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem('dda_vocab_dict_provider');
+        if (saved && this.dictionaryProviders[saved]) {
+          this.currentProvider = saved;
+        }
+      }
+    } catch (e) {}
+  }
+
+  setDictionaryProvider(providerKey) {
+    if (!this.dictionaryProviders[providerKey]) return;
+    this.currentProvider = providerKey;
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ dda_vocab_dict_provider: providerKey });
+      } else if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('dda_vocab_dict_provider', providerKey);
+      }
+    } catch (e) {}
+    this.updateDictionaryUI();
+  }
+
+  hasVocabularyExtension() {
+    return typeof document !== 'undefined' && Boolean(document.getElementById('vocabulary-lookup'));
+  }
+
+  triggerVocabularyLookup(word, rect = null, source = 'auto') {
+    if (typeof document === 'undefined') return false;
+    const bridgeElement = document.getElementById('vocabulary-lookup');
+    if (!bridgeElement) return false;
+
+    bridgeElement.dispatchEvent(new CustomEvent('vocabulary-lookup', {
+      bubbles: true,
+      detail: {
+        word: (word || '').trim(),
+        rect: rect,
+        source: source
+      }
+    }));
+    return true;
+  }
+
+  lookupWord(word, element = null) {
+    if (!word) return;
+    const cleanWord = word.toLowerCase().trim();
+
+    if (this.hasVocabularyExtension()) {
+      const rect = element && typeof element.getBoundingClientRect === 'function' ? element.getBoundingClientRect() : null;
+      const sent = this.triggerVocabularyLookup(cleanWord, rect, 'auto');
+      if (sent) return 'extension';
+    }
+
+    const provider = this.dictionaryProviders[this.currentProvider] || this.dictionaryProviders.cambridge;
+    const url = provider.getUrl(cleanWord);
+    try {
+      if (typeof window !== 'undefined' && typeof window.open === 'function') {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    } catch (e) {}
+    return url;
+  }
+
+  updateDictionaryUI() {
+    if (!this.popoverElement) return;
+    const hasExt = this.hasVocabularyExtension();
+    const provider = this.dictionaryProviders[this.currentProvider] || this.dictionaryProviders.cambridge;
+
+    // If extension is installed, hide dict selector if present and update hints
+    const dictSelector = this.popoverElement.querySelector('.dda-vocab-dict-selector');
+    if (dictSelector) {
+      dictSelector.style.display = hasExt ? 'none' : 'flex';
+    }
+    const extTitle = this.popoverElement.querySelector('.dda-vocab-ext-title');
+    if (extTitle) {
+      extTitle.style.display = hasExt ? 'flex' : 'none';
+    }
+
+    // Update active button state in header
+    const dictBtns = this.popoverElement.querySelectorAll('.dda-dict-btn');
+    dictBtns.forEach(btn => {
+      if (btn.getAttribute('data-dict') === this.currentProvider) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Update word tooltips
+    const wordElements = this.popoverElement.querySelectorAll('.dda-vocab-word');
+    wordElements.forEach(el => {
+      const word = el.getAttribute('data-word') || el.textContent.trim();
+      el.title = hasExt
+        ? `Click to look up "${word}" with Vocabulary Extension ↗`
+        : `Click to look up "${word}" on ${provider.fullName} ↗`;
+    });
+
+    // Update footer / hint text
+    const footerHint = this.popoverElement.querySelector('.dda-vocab-footer-hint');
+    if (footerHint) {
+      footerHint.textContent = hasExt
+        ? '✨ Click any word for instant definitions & pronunciation'
+        : `💡 Click any word to look up on ${provider.name}`;
+    }
+
+    const promoEl = this.popoverElement.querySelector('.dda-vocab-ext-promo');
+    if (promoEl) {
+      promoEl.style.display = hasExt ? 'none' : 'inline-block';
+    }
   }
 
   getRandomTip() {
@@ -95,24 +231,38 @@ class VocabPrep {
       panel.classList.add('dda-active');
     }
 
+    const hasExt = this.hasVocabularyExtension();
+    const provider = this.dictionaryProviders[this.currentProvider] || this.dictionaryProviders.cambridge;
+
     const popover = document.createElement('div');
     popover.className = 'dda-vocab-popover';
     popover.innerHTML = `
       <div class="dda-vocab-popover-header">
-        <div class="dda-vocab-popover-title">
-          <span>📖 Lesson Vocabulary</span>
-          <span class="dda-vocab-count-badge">${words.length} words</span>
+        <div class="dda-vocab-header-top">
+          <div class="dda-vocab-dict-selector" style="${hasExt ? 'display: none;' : 'display: flex;'}">
+            <span class="dda-vocab-dict-label">📖 Dictionary:</span>
+            <div class="dda-vocab-dict-options">
+              <button type="button" class="dda-dict-btn ${this.currentProvider === 'cambridge' ? 'active' : ''}" data-dict="cambridge" title="Lookup on Cambridge Dictionary">Cambridge</button>
+              <button type="button" class="dda-dict-btn ${this.currentProvider === 'vocabulary' ? 'active' : ''}" data-dict="vocabulary" title="Lookup on Vocabulary.com">Vocabulary.com</button>
+            </div>
+          </div>
+          <div class="dda-vocab-ext-title" style="${hasExt ? 'display: flex;' : 'display: none;'}">
+            <span>📖 Lesson Vocabulary</span>
+          </div>
+          <button class="dda-popover-close-btn" title="Close (Esc)">✖</button>
         </div>
-        <button class="dda-popover-close-btn" title="Close (Esc)">✖</button>
+        <div class="dda-vocab-hint-bar">
+          <span class="dda-vocab-footer-hint">${hasExt ? '✨ Click any word for instant definitions & pronunciation' : `💡 Click any word to look up on ${provider.name}`}</span>
+        </div>
       </div>
       <div class="dda-vocab-popover-body">
         <div class="dda-vocab-list">
-          ${words.map(w => `<span class="dda-vocab-word">${w}</span>`).join('')}
+          ${words.map(w => `<button type="button" class="dda-vocab-word" data-word="${w}" title="${hasExt ? `Click to look up &quot;${w}&quot; with Vocabulary Extension ↗` : `Click to look up &quot;${w}&quot; on ${provider.fullName} ↗`}">${w}</button>`).join('')}
         </div>
       </div>
       <div class="dda-vocab-popover-footer">
-        <span>💡 Previewing words boosts listening accuracy</span>
-        <small>Press <strong>Esc</strong> or click outside</small>
+        ${!hasExt ? `<span class="dda-vocab-ext-promo">✨ Want instant in-page popup? <a href="#" class="dda-ext-promo-link" onclick="event.preventDefault();">Get Vocabulary Extension</a></span>` : ''}
+        <small>Press <strong>Esc</strong></small>
       </div>
     `;
 
@@ -127,6 +277,28 @@ class VocabPrep {
       e.preventDefault();
       e.stopPropagation();
       this.closePopup();
+    });
+
+    // Dictionary switcher buttons
+    const dictBtns = popover.querySelectorAll('.dda-dict-btn');
+    dictBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const dict = btn.getAttribute('data-dict');
+        this.setDictionaryProvider(dict);
+      });
+    });
+
+    // Word chip click for dictionary lookup
+    const wordEls = popover.querySelectorAll('.dda-vocab-word');
+    wordEls.forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const word = el.getAttribute('data-word') || el.textContent.trim();
+        this.lookupWord(word, el);
+      });
     });
 
     // Click outside handler

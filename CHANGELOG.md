@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-31 (Ecosystem Bridge & Interactive Dictionary Lookup)
+
+### Added
+- **Ecosystem Bridge (`#vocabulary-lookup`)**:
+  - Automatically detects the presence of the companion `Vocabulary Extension` via DOM bridge element `#vocabulary-lookup`.
+  - Dispatches `CustomEvent('vocabulary-lookup')` with exact word coordinates (`getBoundingClientRect()`) for instant in-page dictionary lookup without opening external tabs.
+- **Interactive Dictionary Search (Cambridge & Vocabulary.com)**:
+  - 1-click lookup on word chips (`.dda-vocab-word`) opening definitions, audio pronunciation, and examples on Cambridge Dictionary or Vocabulary.com.
+  - Interactive dictionary selector in the popover header (`[ Cambridge | Vocabulary.com ]`).
+  - Persistent preference synchronization via `chrome.storage.local` with fallback to `localStorage`.
+- **Adaptive Popover Header & Hint Bar**:
+  - Automatically switches header to clean `📖 Quick Lookups` mode when Vocabulary Extension is installed.
+  - Positioned instructional hint bar directly below the dictionary selector with real-time feedback.
+  - Added installation promo link in footer when extension is not yet detected.
+
+### Changed
+- **Peek Button Polish**:
+  - Removed counter numbers from button labels (`👁️ Peek Transcript`, `💡 Peek Hint`, `🔥 Peek Rescue`) while keeping the mini progress bar visual.
+  - Anchored Transcript Popover directly beneath the Peek button (`right: 0; left: auto;`).
+
+### Fixed
+- Fixed error submission counter so empty inputs/accidental Enter presses no longer increment wrong attempt counts.
+- Fixed popover header overflow and text wrapping by adopting a structured 2-row layout with min-width constraints.
+
+---
+
 ## [1.2.1] - 2026-08-31 (Toolbar Layout Stability & Vocab UX Polish)
 
 ### Changed
