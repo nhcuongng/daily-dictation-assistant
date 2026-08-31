@@ -195,12 +195,15 @@ class VocabPrep {
     const clean = word.toLowerCase().trim();
     
     const cached = this.getWordPosFromCache(clean);
-    if (cached) return cached;
+    if (cached) return cached === 'none' ? null : cached;
 
     try {
       const url = `https://freedictionaryapi.com/api/v1/entries/${encodeURIComponent(language)}/${encodeURIComponent(clean)}`;
       const res = await fetch(url);
-      if (!res.ok) return null;
+      if (!res.ok) {
+        this.saveWordPosToCache(clean, 'none');
+        return null;
+      }
       const data = await res.json();
       
       const entry = Array.isArray(data) ? data[0] : data;
@@ -217,6 +220,8 @@ class VocabPrep {
         }
       }
     } catch (e) {}
+
+    this.saveWordPosToCache(clean, 'none');
     return null;
   }
 
@@ -412,6 +417,11 @@ class VocabPrep {
       if (clean.length > 3 && !this.isStopWord(clean)) {
         const cachedPos = this.getWordPosFromCache(clean);
         
+        // Exclude words known to have no dictionary POS (proper names, invalid words)
+        if (cachedPos === 'none') {
+          return;
+        }
+
         // Exclude purely functional parts of speech from Key Vocab
         if (cachedPos && this.functionalPos.has(cachedPos)) {
           allSet.add(clean);
@@ -425,16 +435,13 @@ class VocabPrep {
       }
     });
 
-    // Sort keyWords descending by score
-    const sortedKeyWords = Array.from(keySet).sort((a, b) => {
-      const scoreB = this.calculateWordScore(b, this.getWordPosFromCache(b));
-      const scoreA = this.calculateWordScore(a, this.getWordPosFromCache(a));
-      return scoreB - scoreA;
-    });
+    // Sort keyWords and allWords in alphabetical order (A-Z)
+    const sortedKeyWords = Array.from(keySet).sort((a, b) => a.localeCompare(b));
+    const sortedAllWords = Array.from(allSet).sort((a, b) => a.localeCompare(b));
 
     return {
       keyWords: sortedKeyWords,
-      allWords: Array.from(allSet)
+      allWords: sortedAllWords
     };
   }
 
@@ -504,11 +511,11 @@ class VocabPrep {
     let allWords = [];
 
     if (Array.isArray(vocabData)) {
-      allWords = vocabData;
-      keyWords = vocabData.filter(w => !this.commonBasicWords.has(w));
+      allWords = [...vocabData].sort((a, b) => a.localeCompare(b));
+      keyWords = vocabData.filter(w => !this.commonBasicWords.has(w)).sort((a, b) => a.localeCompare(b));
     } else if (vocabData && typeof vocabData === 'object') {
-      keyWords = vocabData.keyWords || [];
-      allWords = vocabData.allWords || [];
+      keyWords = (vocabData.keyWords || []).slice().sort((a, b) => a.localeCompare(b));
+      allWords = (vocabData.allWords || []).slice().sort((a, b) => a.localeCompare(b));
     }
 
     if (allWords.length === 0 || !wrapper) return null;
@@ -621,33 +628,68 @@ class VocabPrep {
         const cached = this.getWordPosFromCache(w);
         if (!cached) {
           this.fetchWordPos(w).then(pos => {
-            if (pos && document.body.contains(popover)) {
-              // If word is discovered to be functional while on Key tab, remove it from keyWords and UI
-              if (this.activeTab === 'key' && this.functionalPos.has(pos)) {
-                const idx = keyWords.indexOf(w);
-                if (idx !== -1) keyWords.splice(idx, 1);
-                const wordBtn = listContainer.querySelector(`.dda-vocab-word[data-word="${w}"]`);
-                if (wordBtn) wordBtn.remove();
-                const keyCountBadge = popover.querySelector('.dda-vocab-tab-btn[data-tab="key"] .dda-vocab-tab-count');
-                if (keyCountBadge) keyCountBadge.textContent = keyWords.length;
-                return;
-              }
+            if (!document.body.contains(popover)) return;
+
+            // If word has no valid POS from dictionary API (proper noun like Alice, unknown/404)
+            if (!pos) {
+              const kIdx = keyWords.indexOf(w);
+              if (kIdx !== -1) keyWords.splice(kIdx, 1);
+              const aIdx = allWords.indexOf(w);
+              if (aIdx !== -1) allWords.splice(aIdx, 1);
 
               const wordBtn = listContainer.querySelector(`.dda-vocab-word[data-word="${w}"]`);
-              if (wordBtn) {
-                let posBadge = wordBtn.querySelector('.dda-vocab-pos');
-                if (!posBadge) {
-                  posBadge = document.createElement('span');
-                  wordBtn.appendChild(posBadge);
+              if (wordBtn) wordBtn.remove();
+
+              const keyCountBadge = popover.querySelector('.dda-vocab-tab-btn[data-tab="key"] .dda-vocab-tab-count');
+              if (keyCountBadge) keyCountBadge.textContent = keyWords.length;
+              const allCountBadge = popover.querySelector('.dda-vocab-tab-btn[data-tab="all"] .dda-vocab-tab-count');
+              if (allCountBadge) allCountBadge.textContent = allWords.length;
+
+              if (panel) {
+                const countBadge = panel.querySelector('.dda-vocab-count-badge');
+                if (countBadge) {
+                  countBadge.textContent = keyWords.length > 0 ? `${keyWords.length} key words` : `${allWords.length} words`;
                 }
-                posBadge.className = `dda-vocab-pos dda-pos-${pos}`;
-                posBadge.textContent = pos;
-                posBadge.style.display = 'inline-flex';
               }
-              // Update filter counters if on all tab
+
+              if (listContainer.children.length === 0) {
+                listContainer.innerHTML = `<span class="dda-vocab-empty-msg">No words in this category</span>`;
+              }
+
               if (this.activeTab === 'all') {
                 renderPosFilters(allWords);
               }
+              return;
+            }
+
+            // If word is discovered to be functional while on Key tab, remove it from keyWords and UI
+            if (this.activeTab === 'key' && this.functionalPos.has(pos)) {
+              const idx = keyWords.indexOf(w);
+              if (idx !== -1) keyWords.splice(idx, 1);
+              const wordBtn = listContainer.querySelector(`.dda-vocab-word[data-word="${w}"]`);
+              if (wordBtn) wordBtn.remove();
+              const keyCountBadge = popover.querySelector('.dda-vocab-tab-btn[data-tab="key"] .dda-vocab-tab-count');
+              if (keyCountBadge) keyCountBadge.textContent = keyWords.length;
+              if (listContainer.children.length === 0) {
+                listContainer.innerHTML = `<span class="dda-vocab-empty-msg">No words in this category</span>`;
+              }
+              return;
+            }
+
+            const wordBtn = listContainer.querySelector(`.dda-vocab-word[data-word="${w}"]`);
+            if (wordBtn) {
+              let posBadge = wordBtn.querySelector('.dda-vocab-pos');
+              if (!posBadge) {
+                posBadge = document.createElement('span');
+                wordBtn.appendChild(posBadge);
+              }
+              posBadge.className = `dda-vocab-pos dda-pos-${pos}`;
+              posBadge.textContent = pos;
+              posBadge.style.display = 'inline-flex';
+            }
+            // Update filter counters if on all tab
+            if (this.activeTab === 'all') {
+              renderPosFilters(allWords);
             }
           }).catch(() => {});
         }

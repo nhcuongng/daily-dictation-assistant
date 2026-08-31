@@ -494,15 +494,17 @@ describe('VocabPrep', () => {
     expect(scorePeople).toBeLessThan(5);
   });
 
-  test('sorts keyWords by importance score descending', () => {
+  test('sorts keyWords and allWords in alphabetical order (A-Z)', () => {
     prep.saveWordPosToCache('symphony', 'n');
-    prep.saveWordPosToCache('extraordinary', 'adj'); // length 13 + adj bonus (+3) + length >= 6 (+2)
+    prep.saveWordPosToCache('extraordinary', 'adj');
+    prep.saveWordPosToCache('apple', 'n');
 
-    const text = 'The symphony was extraordinary';
-    const { keyWords } = prep.extractCategorizedVocab(text);
+    const text = 'The people listened to the extraordinary symphony and ate delicious apple';
+    const { keyWords, allWords } = prep.extractCategorizedVocab(text);
 
-    expect(keyWords[0]).toBe('extraordinary');
-    expect(keyWords).toContain('symphony');
+    // 'people' and 'listened' are basic content words (in allWords, not in keyWords)
+    expect(keyWords).toEqual(['apple', 'delicious', 'extraordinary', 'symphony']);
+    expect(allWords).toEqual(['apple', 'delicious', 'extraordinary', 'listened', 'people', 'symphony']);
   });
 
   test('renders Mini POS Filter Bar in All Words tab and filters word chips', () => {
@@ -542,6 +544,80 @@ describe('VocabPrep', () => {
     const allFilterBtn = popover.querySelector('.dda-pos-filter-btn[data-filter="all"]');
     allFilterBtn.click();
     const allExtracted = Array.from(popover.querySelectorAll('.dda-vocab-word')).map(w => w.getAttribute('data-word'));
-    expect(allExtracted.length).toBe(4);
+    expect(allExtracted).toEqual(['beautiful', 'investigate', 'remarkably', 'symphony']);
+  });
+
+  test('renders word buttons in popover in alphabetical order by default', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('zebra elephant cat apple bird dog giraffe', container);
+    panel.click();
+
+    const popover = document.querySelector('.dda-vocab-popover');
+    const allTabBtn = popover.querySelector('.dda-vocab-tab-btn[data-tab="all"]');
+    allTabBtn.click();
+
+    const words = Array.from(popover.querySelectorAll('.dda-vocab-word')).map(w => w.getAttribute('data-word'));
+    expect(words).toEqual(['apple', 'bird', 'elephant', 'giraffe', 'zebra']); // 'cat' and 'dog' <= 3 chars filtered
+  });
+
+  test('caches "none" and returns null when dictionary API returns 404 or no POS', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 404
+    });
+
+    const pos = await prep.fetchWordPos('alice');
+    expect(pos).toBeNull();
+    expect(prep.getWordPosFromCache('alice')).toBe('none');
+
+    // Second call hits cache without triggering fetch
+    global.fetch.mockClear();
+    const cached = await prep.fetchWordPos('alice');
+    expect(cached).toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  test('extractCategorizedVocab skips words cached with "none" (proper nouns/unknown words)', () => {
+    prep.saveWordPosToCache('alice', 'none');
+    prep.saveWordPosToCache('wonderland', 'n');
+
+    const text = 'Alice went to wonderland';
+    const { keyWords, allWords } = prep.extractCategorizedVocab(text);
+
+    expect(allWords).not.toContain('alice');
+    expect(keyWords).not.toContain('alice');
+    expect(allWords).toContain('wonderland');
+  });
+
+  test('automatically removes words from DOM and updates counters when API returns no POS', async () => {
+    global.fetch = jest.fn().mockImplementation((url) => {
+      if (url.includes('/alice')) {
+        return Promise.resolve({ ok: false, status: 404 });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => [{ meanings: [{ partOfSpeech: 'noun' }] }]
+      });
+    });
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Alice explored wonderland', container);
+    panel.click();
+
+    const popover = document.querySelector('.dda-vocab-popover');
+    expect(popover).not.toBeNull();
+
+    // Initially 'alice' is in DOM before async fetch resolves
+    // Wait for async fetch calls to resolve
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const wordBtns = popover.querySelectorAll('.dda-vocab-word');
+    const words = Array.from(wordBtns).map(w => w.getAttribute('data-word'));
+
+    expect(words).not.toContain('alice');
+    expect(words).toContain('wonderland');
+    expect(prep.getWordPosFromCache('alice')).toBe('none');
   });
 });
