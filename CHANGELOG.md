@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-08-31 (Toolbar Layout Stability & Vocab UX Polish)
+
+### Changed
+- **Zero Layout Shift on Actions Toolbar**:
+  - Stabilized Progressive Peek button width (`width: 140px;`) and added centered alignment (`justify-content: center; text-align: center;`), preventing layout jitter when answer attempts change.
+  - Standardized Peek button to clean, concise status labels across all 3 progressive levels: `👁️ Peek Transcript` (subtle), `💡 Peek Hint (N/6)` (warning), and `🔥 Peek Rescue (N/6)` (fire rescue).
+  - Moved full motivational and guidance sentences into `title` attribute tooltips.
+  - Optimized Peek button padding (`padding: 6px 8px; font-size: 12px;`) and toolbar gap (`gap: 5px;`), expanding available horizontal space for vocabulary context.
+- **Punchy Vocab Panel Tips**:
+  - Rewrote vocabulary catalog tips into concise, engaging English phrases (~28-36 chars) that fit naturally without truncating or overwhelming the toolbar.
+  - Retained full context tooltip on hover (`title="${tipText}"`).
+
+### Fixed
+- Fixed visual layout shift (jitter) where varying lengths of Peek button text forced the adjacent Word Bank panel to shrink or stretch abruptly.
+
+---
+
 ## [1.2.0] - 2026-08-31 (Phase 1.1: Compact Speed Pill & Visual Customizable Presets)
 
 ### Added

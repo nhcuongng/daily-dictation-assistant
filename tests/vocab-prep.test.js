@@ -48,11 +48,12 @@ describe('VocabPrep', () => {
 
     expect(panel).not.toBeNull();
     expect(panel.classList.contains('dda-vocab-panel')).toBe(true);
+    expect(panel.title).toBe('✨ Word Bank: Explore key vocabulary');
     
     const vocabText = panel.querySelector('.dda-vocab-text');
     expect(vocabText).not.toBeNull();
     expect(vocabText.getAttribute('title')).toBe('✨ Word Bank: Explore key vocabulary');
-    expect(vocabText.textContent).toContain('✨ Word Bank: Explore key vocabulary');
+    expect(vocabText.textContent.trim()).toBe('✨ Word Bank: Explore key vocabulary');
 
     const actions = panel.querySelector('.dda-vocab-actions');
     expect(actions).not.toBeNull();
@@ -143,6 +144,11 @@ describe('VocabPrep', () => {
 
   test('provides English tips catalog and random tip selection', () => {
     expect(prep.tips.length).toBeGreaterThanOrEqual(10);
+    prep.tips.forEach(t => {
+      expect(t).toContain(':');
+      expect(t.split(':')[0].trim().length).toBeGreaterThan(0);
+      expect(t.length).toBeLessThanOrEqual(45);
+    });
     const tip = prep.getRandomTip();
     expect(typeof tip).toBe('string');
     expect(prep.tips).toContain(tip);

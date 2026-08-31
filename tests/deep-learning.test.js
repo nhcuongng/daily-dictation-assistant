@@ -101,6 +101,8 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
   test('starts at subtle level, transitions to warning after 3 errors, fire after 6 errors, and resets for new challenge', () => {
     expect(loop.getPeekLevel()).toBe('subtle');
     expect(loop.peekBtn.classList.contains('dda-level-subtle')).toBe(true);
+    expect(loop.peekBtn.textContent).toContain('👁️ Peek Transcript');
+    expect(loop.peekBtn.title.length).toBeGreaterThan(0);
     let bar = loop.peekBtn.querySelector('.dda-peek-progress-bar');
     expect(bar).not.toBeNull();
     expect(bar.style.width).toBe('0%');
@@ -110,6 +112,8 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
     loop.updatePeekButton();
     expect(loop.getPeekLevel(0)).toBe('warning');
     expect(loop.peekBtn.classList.contains('dda-level-warning')).toBe(true);
+    expect(loop.peekBtn.textContent).toContain('💡 Peek Hint (3/6)');
+    expect(loop.peekBtn.title.length).toBeGreaterThan(0);
     bar = loop.peekBtn.querySelector('.dda-peek-progress-bar');
     expect(bar.style.width).toBe('50%');
 
@@ -118,6 +122,8 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
     loop.updatePeekButton();
     expect(loop.getPeekLevel(0)).toBe('fire');
     expect(loop.peekBtn.classList.contains('dda-level-fire')).toBe(true);
+    expect(loop.peekBtn.textContent).toContain('🔥 Peek Rescue (6/6)');
+    expect(loop.peekBtn.title.length).toBeGreaterThan(0);
     bar = loop.peekBtn.querySelector('.dda-peek-progress-bar');
     expect(bar.style.width).toBe('100%');
 

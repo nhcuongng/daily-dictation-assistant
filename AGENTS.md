@@ -72,3 +72,27 @@ Dự án này tuân thủ quy trình 2 giai đoạn: **Lập kế hoạch trư�
 ## 3. Ngôn Ngữ Giao Tiếp & Quy Chuẩn UI (Communication & UI Rules)
 - Mặc định sử dụng **Tiếng Việt** trong giao tiếp và tài liệu trừ khi có yêu cầu cụ thể khác.
 - **Quy chuẩn giao diện Extension (Extension UI Standard)**: Toàn bộ giao diện người dùng (UI text, buttons, labels, tooltips, badges, CTA tips, feedback messages) của Extension **bắt buộc luôn luôn sử dụng 100% Tiếng Anh (English)**.
+
+---
+
+## 4. Quy Trình Nâng Version & Đóng Gói Chuẩn (Release & Version Bump Workflow)
+Khi người dùng yêu cầu **"nâng version" / "bump version" / "đóng gói release"**, AI Agent **luôn luôn thực hiện trọn vẹn chuỗi các bước sau**:
+
+1. **Kiểm tra trạng thái & Đảm bảo nhánh `main`**:
+   - Nếu đang ở nhánh phụ/feature branch: Commit đầy đủ và merge vào nhánh `main`, sau đó checkout sang nhánh `main`.
+2. **Nâng version đồng bộ**:
+   - Cập nhật số phiên bản theo Semantic Versioning (`x.y.z`) đồng thời trong cả [`package.json`](file:///Users/cuongnguyenhuu/Projects/personal/dicdation-assistant/package.json) và [`manifest.json`](file:///Users/cuongnguyenhuu/Projects/personal/dicdation-assistant/manifest.json).
+3. **Cập nhật Lịch Sử Thay Đổi ([`CHANGELOG.md`](file:///Users/cuongnguyenhuu/Projects/personal/dicdation-assistant/CHANGELOG.md))**:
+   - Thêm đề mục phiên bản mới (`## [x.y.z] - YYYY-MM-DD (Tóm tắt tính năng)`) theo chuẩn Keep a Changelog.
+   - Liệt kê đầy đủ các mục `Added`, `Changed`, `Fixed`, `Removed` (nếu có).
+4. **Kiểm thử & Đóng gói Phân phối (`dist/`)**:
+   - Chạy `npm test` để xác nhận toàn bộ test suites **PASS 100%**.
+   - Chạy `npm run build` để compile và đồng bộ toàn bộ file mới nhất sang thư mục `dist/` (bao gồm `dist/manifest.json`).
+   - Chạy `npm run policy` để đảm bảo tuân thủ Chrome Web Store.
+5. **Commit & Gắn Tag Git**:
+   - Stage toàn bộ thay đổi (`git add .`).
+   - Commit với format chuẩn: `chore(release): bump version to x.y.z and update changelog`.
+   - Tạo annotated Git Tag tương ứng: `git tag -a vx.y.z -m "Release vx.y.z"`.
+6. **Báo cáo kết quả rõ ràng**:
+   - Thông báo số version mới, tag vừa tạo, và tóm tắt nội dung changelog cho người dùng.
+

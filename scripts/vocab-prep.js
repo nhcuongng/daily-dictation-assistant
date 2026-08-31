@@ -3,20 +3,20 @@ class VocabPrep {
     this.stopWords = new Set(['the','and','that','have','for','not','with','you','this','but','his','from','they','say','her','she','will','one','all','would','there','their','what','out','about','who','get','which','when','make','can','like','time','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us']);
     this.tips = [
       // Learning Tips / Context
-      '💡 Tip: Skim vocabulary to catch context before listening',
-      '💡 Pro Tip: Previewing words helps you recognize sounds faster',
-      '💡 Clue: Get familiar with key words so you don\'t miss a beat',
-      '💡 Hint: Warm up with vocabulary for easier dictation',
+      '💡 Tip: Preview words before listening',
+      '💡 Pro Tip: Catch key words faster',
+      '💡 Clue: Learn words before audio plays',
+      '💡 Hint: Warm up your vocabulary',
       // Action / Warm-up
-      '⚡ Vocab Warm-up: Check difficult words before you start',
-      '🚀 Gear Up: Uncover key words in this lesson before pressing Play',
-      '🎧 Ready to Listen? Preview the essential vocabulary here',
-      '🔥 Ear Warm-up: Familiarize yourself with words in this story',
+      '⚡ Warm-up: Check difficult words',
+      '🚀 Gear Up: Preview lesson words',
+      '🎧 Listen: Glance at key vocabulary',
+      '🔥 Ear Prep: Review audio keywords',
       // Guide / Helper
-      '📖 Click to glance at vocabulary for this exercise',
-      '👀 Lifebuoy: Open to view helpful vocabulary for this lesson',
-      '🎯 Key Vocabulary: Tap here to preview words in this audio',
-      '✨ Word Bank: Explore key vocabulary used in this exercise'
+      '📖 Glance: Preview vocabulary here',
+      '👀 Lifebuoy: View helpful words',
+      '🎯 Key Vocab: Preview story words',
+      '✨ Word Bank: Explore lesson words'
     ];
   }
 
@@ -52,7 +52,7 @@ class VocabPrep {
     const tipText = options.customTip || this.getRandomTip();
     const panel = document.createElement('div');
     panel.className = 'dda-vocab-panel';
-    panel.title = 'Click to view vocabulary words (Floating popup)';
+    panel.title = tipText;
     panel.innerHTML = `
       <div class="dda-vocab-text dda-vocab-title" title="${tipText}">
         <span>${tipText}</span>

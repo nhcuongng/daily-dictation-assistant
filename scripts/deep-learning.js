@@ -132,9 +132,18 @@ class DeepLearningLoop {
 
     const tips = this.peekTips[level];
     const tip = tips[Math.floor(Math.random() * tips.length)];
+
+    let label = '👁️ Peek Transcript';
+    if (level === 'warning') {
+      label = `💡 Peek Hint (${count}/6)`;
+    } else if (level === 'fire') {
+      label = `🔥 Peek Rescue (${count}/6)`;
+    }
+
+    peekBtn.title = tip;
     peekBtn.innerHTML = `
       <div class="dda-peek-progress-bar" style="width: ${progressPercent}%;"></div>
-      <span>${tip}</span>
+      <span>${label}</span>
     `;
   }
 
