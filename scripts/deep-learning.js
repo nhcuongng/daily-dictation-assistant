@@ -8,18 +8,18 @@ class DeepLearningLoop {
         '👁️ Peek Transcript',
         '👁️ Take a peek if stuck',
         '👁️ Need a hint? Peek here',
-        '👁️ Peek Answer'
+        '👁️ Peek the answer'
       ],
       warning: [
-        '⚠️ Struggling? Peek to get unstuck',
-        '💡 3rd try! Take a peek at the sentence',
-        '👀 Still tricky? Tap here for a hint',
-        '⚠️ Tough sentence? Check the clue'
+        '💡 Peek Hint',
+        '💡 Struggling? Peek to get unstuck',
+        '💡 3rd try — take a peek at the sentence',
+        '💡 Still tricky? Tap here for a hint'
       ],
       fire: [
-        '🔥 Don\'t give up! Peek and learn',
-        '🔥 6+ tries! Check the transcript here',
-        '🆘 Rescue Mode: View the solution',
+        '🔥 Peek Rescue',
+        '🔥 Don\'t give up — peek and learn',
+        '🔥 6+ tries — check the transcript here',
         '🔥 Tough audio! Peek to move on'
       ]
     };
@@ -134,15 +134,10 @@ class DeepLearningLoop {
     peekBtn.classList.remove('dda-level-subtle', 'dda-level-warning', 'dda-level-fire');
     peekBtn.classList.add(`dda-level-${level}`);
 
+    // Use peekTips[level][0] as button label, random from full array for tooltip
     const tips = this.peekTips[level];
+    const label = tips[0];
     const tip = tips[Math.floor(Math.random() * tips.length)];
-
-    let label = '👁️ Peek Transcript';
-    if (level === 'warning') {
-      label = '💡 Peek Hint';
-    } else if (level === 'fire') {
-      label = '🔥 Peek Rescue';
-    }
 
     peekBtn.title = tip;
     peekBtn.innerHTML = `

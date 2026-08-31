@@ -1268,25 +1268,25 @@ body[data-bs-theme="dark"] {
   color: #ffffff;
 }
 
-[data-theme="dark"] .dda-pos-n {
+[data-bs-theme="dark"] .dda-pos-n {
   background: rgba(59, 130, 246, 0.25);
   color: #93c5fd;
 }
-[data-theme="dark"] .dda-pos-v {
+[data-bs-theme="dark"] .dda-pos-v {
   background: rgba(16, 185, 129, 0.25);
   color: #6ee7b7;
 }
-[data-theme="dark"] .dda-pos-adj {
+[data-bs-theme="dark"] .dda-pos-adj {
   background: rgba(245, 158, 11, 0.25);
   color: #fcd34d;
 }
-[data-theme="dark"] .dda-pos-adv {
+[data-bs-theme="dark"] .dda-pos-adv {
   background: rgba(139, 92, 246, 0.25);
   color: #c4b5fd;
 }
-[data-theme="dark"] .dda-pos-prep,
-[data-theme="dark"] .dda-pos-pron,
-[data-theme="dark"] .dda-pos-conj {
+[data-bs-theme="dark"] .dda-pos-prep,
+[data-bs-theme="dark"] .dda-pos-pron,
+[data-bs-theme="dark"] .dda-pos-conj {
   background: rgba(148, 163, 184, 0.25);
   color: #cbd5e1;
 }

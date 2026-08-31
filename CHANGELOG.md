@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-08-31 (UX Polish & Bug Fixes)
+
+### Fixed
+- **Dark mode POS badge selectors**: Replaced incorrect `[data-theme="dark"]` with `[data-bs-theme="dark"]` to match the rest of the codebase's theme detection pattern. Part-of-speech badge colors (`n`, `v`, `adj`, `adv`, etc.) now correctly apply in dark mode.
+
+### Changed
+- **Manifest description**: Rewritten to accurately reflect the full feature set — *"Boost your Daily Dictation practice: playback speed control, vocab preview, peek transcript, and instant answer diff."*
+- **Vocab Prep tip texts**: Unified tone across all 12 tips to a consistent instructional format (`💡 Tip: [action phrase]`), replacing the previous mix of formal, casual, and varied-prefix styles.
+- **Peek button text system**: Consolidated duplicate label/tooltip logic — `peekTips[level][0]` is now used as the button label, while the full array rotates as tooltip text. Eliminates the previously separate hardcoded label variables.
+
+---
+
 ## [1.3.0] - 2026-08-31 (Ecosystem Bridge & Interactive Dictionary Lookup)
 
 ### Added

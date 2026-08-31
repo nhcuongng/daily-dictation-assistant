@@ -75,21 +75,18 @@ class VocabPrep {
     ]);
 
     this.tips = [
-      // Learning Tips / Context
       '💡 Tip: Preview words before listening',
-      '💡 Pro Tip: Catch key words faster',
-      '💡 Clue: Learn words before audio plays',
-      '💡 Hint: Warm up your vocabulary',
-      // Action / Warm-up
-      '⚡ Warm-up: Check difficult words',
-      '🚀 Gear Up: Preview lesson words',
-      '🎧 Listen: Glance at key vocabulary',
-      '🔥 Ear Prep: Review audio keywords',
-      // Guide / Helper
-      '📖 Glance: Preview vocabulary here',
-      '👀 Lifebuoy: View helpful words',
-      '🎯 Key Vocab: Preview story words',
-      '✨ Word Bank: Explore lesson words'
+      '💡 Tip: Catch key words before the audio',
+      '💡 Tip: Learn new words before you listen',
+      '💡 Tip: Warm up your vocabulary first',
+      '💡 Tip: Check difficult words here',
+      '💡 Tip: Preview lesson words before starting',
+      '💡 Tip: Glance at key vocabulary first',
+      '💡 Tip: Review audio keywords first',
+      '💡 Tip: Preview vocabulary for this lesson',
+      '💡 Tip: Check helpful words before you start',
+      '💡 Tip: Preview story words for this lesson',
+      '💡 Tip: Explore lesson words before playing'
     ];
 
     this.dictionaryProviders = {
