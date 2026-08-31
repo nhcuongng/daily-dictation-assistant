@@ -620,4 +620,144 @@ describe('VocabPrep', () => {
     expect(words).toContain('wonderland');
     expect(prep.getWordPosFromCache('alice')).toBe('none');
   });
+
+  test('toggles pin state on pin button click, persists setting, and updates pin button UI', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+    panel.click();
+
+    const popover = document.querySelector('.dda-vocab-popover');
+    const pinBtn = popover.querySelector('.dda-popover-pin-btn');
+    expect(pinBtn).not.toBeNull();
+    expect(prep.isPinned).toBe(false);
+    expect(pinBtn.classList.contains('pinned')).toBe(false);
+
+    // Click pin button -> pin
+    pinBtn.click();
+    expect(prep.isPinned).toBe(true);
+    expect(pinBtn.classList.contains('pinned')).toBe(true);
+    expect(pinBtn.title).toBe('Unpin panel');
+    expect(localStorage.getItem('dda_vocab_pinned')).toBe('true');
+
+    // Click pin button again -> unpin
+    pinBtn.click();
+    expect(prep.isPinned).toBe(false);
+    expect(pinBtn.classList.contains('pinned')).toBe(false);
+    expect(pinBtn.title).toBe('Pin panel (keep open)');
+    expect(localStorage.getItem('dda_vocab_pinned')).toBe('false');
+  });
+
+  test('keeps popover open when clicking outside if pinned', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+    panel.click();
+
+    const popover = document.querySelector('.dda-vocab-popover');
+    const pinBtn = popover.querySelector('.dda-popover-pin-btn');
+    pinBtn.click(); // Pin the panel
+
+    expect(prep.isPinned).toBe(true);
+    expect(prep.isPopupOpen()).toBe(true);
+
+    // Click outside
+    const outsideEl = document.createElement('div');
+    document.body.appendChild(outsideEl);
+    outsideEl.click();
+
+    // Popover should stay open!
+    expect(prep.isPopupOpen()).toBe(true);
+    expect(document.querySelector('.dda-vocab-popover')).not.toBeNull();
+  });
+
+  test('automatically opens popover on renderPanel if pinned', () => {
+    prep.isPinned = true;
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+
+    prep.renderPanel('Discover the extraordinary landscape', container);
+
+    expect(prep.isPopupOpen()).toBe(true);
+    const popover = document.querySelector('.dda-vocab-popover');
+    expect(popover).not.toBeNull();
+
+    const words = Array.from(popover.querySelectorAll('.dda-vocab-word')).map(w => w.getAttribute('data-word'));
+    expect(words).toContain('extraordinary');
+    expect(words).toContain('landscape');
+  });
+
+  test('applies default left-side positioning to popover', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+    panel.click();
+
+    const popover = document.querySelector('.dda-vocab-popover');
+    expect(popover).not.toBeNull();
+    expect(popover.style.position).toBe('fixed');
+    expect(popover.style.left).toBe('24px');
+    expect(popover.style.top).toBe('120px');
+  });
+
+  test('supports dragging header with mouse to reposition panel and saves position', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+    panel.click();
+
+    const popover = document.querySelector('.dda-vocab-popover');
+    const header = popover.querySelector('.dda-vocab-popover-header');
+    
+    // Mock getBoundingClientRect
+    popover.getBoundingClientRect = () => ({
+      left: 24,
+      top: 120,
+      width: 380,
+      height: 300,
+      right: 404,
+      bottom: 420
+    });
+
+    // Start mouse drag at (50, 130)
+    const mousedownEvt = new MouseEvent('mousedown', { clientX: 50, clientY: 130, bubbles: true });
+    header.dispatchEvent(mousedownEvt);
+    expect(popover.classList.contains('dda-dragging')).toBe(true);
+
+    // Move mouse by delta (+100, +50) -> to (150, 180)
+    const mousemoveEvt = new MouseEvent('mousemove', { clientX: 150, clientY: 180 });
+    document.dispatchEvent(mousemoveEvt);
+
+    expect(popover.style.left).toBe('124px');
+    expect(popover.style.top).toBe('170px');
+
+    // Finish mouse drag
+    // Mock updated getBoundingClientRect
+    popover.getBoundingClientRect = () => ({
+      left: 124,
+      top: 170,
+      width: 380,
+      height: 300,
+      right: 504,
+      bottom: 470
+    });
+    const mouseupEvt = new MouseEvent('mouseup', {});
+    document.dispatchEvent(mouseupEvt);
+
+    expect(popover.classList.contains('dda-dragging')).toBe(false);
+    expect(prep.customPosition).toEqual({ left: 124, top: 170 });
+    expect(localStorage.getItem('dda_vocab_position')).toBe(JSON.stringify({ left: 124, top: 170 }));
+  });
+
+  test('restores custom position on subsequent popover opens', () => {
+    prep.customPosition = { left: 80, top: 200 };
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const panel = prep.renderPanel('Listen to the beautiful symphony', container);
+    panel.click();
+
+    const popover = document.querySelector('.dda-vocab-popover');
+    expect(popover.style.left).toBe('80px');
+    expect(popover.style.top).toBe('200px');
+  });
 });

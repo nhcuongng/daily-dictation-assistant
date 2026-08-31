@@ -116,8 +116,57 @@ class VocabPrep {
     this.functionalPos = new Set(['prep', 'pron', 'conj', 'interj', 'num']);
     this.activePosFilter = 'all'; // 'all' | 'n' | 'v' | 'adj' | 'adv'
     
+    // Pin and Custom Position configuration
+    this.isPinned = false;
+    this.customPosition = null; // { left: number, top: number }
+
     this.loadDictionaryProvider();
     this.loadPosCache();
+    this.loadSettings();
+  }
+
+  loadSettings() {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get(['dda_vocab_pinned', 'dda_vocab_position'], (res) => {
+          if (res) {
+            if (typeof res.dda_vocab_pinned === 'boolean') {
+              this.isPinned = res.dda_vocab_pinned;
+            }
+            if (res.dda_vocab_position && typeof res.dda_vocab_position === 'object') {
+              this.customPosition = res.dda_vocab_position;
+            }
+          }
+        });
+      } else if (typeof localStorage !== 'undefined') {
+        const pinned = localStorage.getItem('dda_vocab_pinned');
+        if (pinned !== null) {
+          this.isPinned = pinned === 'true';
+        }
+        const pos = localStorage.getItem('dda_vocab_position');
+        if (pos) {
+          this.customPosition = JSON.parse(pos);
+        }
+      }
+    } catch (e) {}
+  }
+
+  persistSettings() {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({
+          dda_vocab_pinned: this.isPinned,
+          dda_vocab_position: this.customPosition
+        });
+      } else if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('dda_vocab_pinned', String(this.isPinned));
+        if (this.customPosition) {
+          localStorage.setItem('dda_vocab_position', JSON.stringify(this.customPosition));
+        } else {
+          localStorage.removeItem('dda_vocab_position');
+        }
+      }
+    } catch (e) {}
   }
 
   loadPosCache() {
@@ -495,6 +544,12 @@ class VocabPrep {
     this.panelElement = panel;
     this.currentCategorizedWords = { keyWords, allWords };
     this.currentWords = keyWords.length > 0 ? keyWords : allWords;
+
+    // If pinned, automatically open popup with fresh words
+    if (this.isPinned) {
+      this.openPopup(this.currentCategorizedWords, wrapper, panel);
+    }
+
     return panel;
   }
 
@@ -504,6 +559,174 @@ class VocabPrep {
     } else {
       this.openPopup(vocabData, wrapper, panel);
     }
+  }
+
+  applyPopoverPosition(popover) {
+    if (!popover) return;
+    
+    popover.style.position = 'fixed';
+
+    if (this.customPosition && typeof this.customPosition.left === 'number' && typeof this.customPosition.top === 'number') {
+      const popoverWidth = 380;
+      const popoverHeight = 350;
+      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+
+      const maxLeft = Math.max(10, viewportWidth - popoverWidth - 10);
+      const maxTop = Math.max(10, viewportHeight - popoverHeight - 10);
+      const clampedLeft = Math.max(10, Math.min(this.customPosition.left, maxLeft));
+      const clampedTop = Math.max(10, Math.min(this.customPosition.top, maxTop));
+
+      popover.style.left = `${clampedLeft}px`;
+      popover.style.top = `${clampedTop}px`;
+      popover.style.right = 'auto';
+      popover.style.bottom = 'auto';
+    } else {
+      // Default position: Floating on the left side to avoid covering textarea
+      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      if (viewportWidth > 768) {
+        popover.style.left = '24px';
+        popover.style.top = '120px';
+      } else {
+        popover.style.left = '12px';
+        popover.style.top = '80px';
+      }
+      popover.style.right = 'auto';
+      popover.style.bottom = 'auto';
+    }
+  }
+
+  makeDraggable(popover, dragHandle) {
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let initialLeft = 0;
+    let initialTop = 0;
+
+    const onMouseDown = (e) => {
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) {
+        return;
+      }
+      e.preventDefault();
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      const rect = popover.getBoundingClientRect();
+      initialLeft = rect.left;
+      initialTop = rect.top;
+
+      popover.classList.add('dda-dragging');
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    };
+
+    const onMouseMove = (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+
+      let newLeft = initialLeft + deltaX;
+      let newTop = initialTop + deltaY;
+
+      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+      const popoverWidth = popover.offsetWidth || 380;
+      const popoverHeight = popover.offsetHeight || 300;
+
+      const maxLeft = Math.max(10, viewportWidth - popoverWidth - 10);
+      const maxTop = Math.max(10, viewportHeight - popoverHeight - 10);
+
+      newLeft = Math.max(10, Math.min(newLeft, maxLeft));
+      newTop = Math.max(10, Math.min(newTop, maxTop));
+
+      popover.style.left = `${newLeft}px`;
+      popover.style.top = `${newTop}px`;
+      popover.style.right = 'auto';
+      popover.style.bottom = 'auto';
+    };
+
+    const onMouseUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      popover.classList.remove('dda-dragging');
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+
+      const rect = popover.getBoundingClientRect();
+      this.customPosition = {
+        left: Math.round(rect.left),
+        top: Math.round(rect.top)
+      };
+      this.persistSettings();
+    };
+
+    dragHandle.addEventListener('mousedown', onMouseDown);
+
+    // Touch support
+    const onTouchStart = (e) => {
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) {
+        return;
+      }
+      const touch = e.touches[0];
+      if (!touch) return;
+      isDragging = true;
+      startX = touch.clientX;
+      startY = touch.clientY;
+
+      const rect = popover.getBoundingClientRect();
+      initialLeft = rect.left;
+      initialTop = rect.top;
+
+      popover.classList.add('dda-dragging');
+      document.addEventListener('touchmove', onTouchMove, { passive: false });
+      document.addEventListener('touchend', onTouchEnd);
+    };
+
+    const onTouchMove = (e) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      if (!touch) return;
+      e.preventDefault();
+
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+
+      let newLeft = initialLeft + deltaX;
+      let newTop = initialTop + deltaY;
+
+      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+      const popoverWidth = popover.offsetWidth || 380;
+      const popoverHeight = popover.offsetHeight || 300;
+
+      const maxLeft = Math.max(10, viewportWidth - popoverWidth - 10);
+      const maxTop = Math.max(10, viewportHeight - popoverHeight - 10);
+
+      newLeft = Math.max(10, Math.min(newLeft, maxLeft));
+      newTop = Math.max(10, Math.min(newTop, maxTop));
+
+      popover.style.left = `${newLeft}px`;
+      popover.style.top = `${newTop}px`;
+    };
+
+    const onTouchEnd = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      popover.classList.remove('dda-dragging');
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+
+      const rect = popover.getBoundingClientRect();
+      this.customPosition = {
+        left: Math.round(rect.left),
+        top: Math.round(rect.top)
+      };
+      this.persistSettings();
+    };
+
+    dragHandle.addEventListener('touchstart', onTouchStart, { passive: true });
   }
 
   openPopup(vocabData = this.currentCategorizedWords, wrapper = this.wrapperElement, panel = this.panelElement) {
@@ -535,12 +758,16 @@ class VocabPrep {
     const popover = document.createElement('div');
     popover.className = 'dda-vocab-popover';
     popover.innerHTML = `
-      <div class="dda-vocab-popover-header">
+      <div class="dda-vocab-popover-header" title="Drag to move panel">
         <div class="dda-vocab-header-top">
           <div class="dda-vocab-header-title">
+            <span class="dda-vocab-drag-handle" title="Drag to move">⠿</span>
             <span>📖 Lesson Vocabulary</span>
           </div>
-          <button class="dda-popover-close-btn" title="Close (Esc)">✖</button>
+          <div class="dda-vocab-header-controls">
+            <button type="button" class="dda-popover-pin-btn ${this.isPinned ? 'active pinned' : ''}" title="${this.isPinned ? 'Unpin panel' : 'Pin panel (keep open)'}">📌</button>
+            <button type="button" class="dda-popover-close-btn" title="Close (Esc)">✖</button>
+          </div>
         </div>
         <div class="dda-vocab-tabs">
           <button type="button" class="dda-vocab-tab-btn ${this.activeTab === 'key' ? 'active' : ''}" data-tab="key" title="Key and advanced vocabulary">
@@ -574,6 +801,31 @@ class VocabPrep {
     popover.addEventListener('click', (e) => {
       e.stopPropagation();
     });
+
+    // Apply positioning & make draggable
+    this.applyPopoverPosition(popover);
+    const headerEl = popover.querySelector('.dda-vocab-popover-header');
+    if (headerEl) {
+      this.makeDraggable(popover, headerEl);
+    }
+
+    // Pin button event
+    const pinBtn = popover.querySelector('.dda-popover-pin-btn');
+    if (pinBtn) {
+      pinBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.isPinned = !this.isPinned;
+        if (this.isPinned) {
+          pinBtn.classList.add('active', 'pinned');
+          pinBtn.title = 'Unpin panel';
+        } else {
+          pinBtn.classList.remove('active', 'pinned');
+          pinBtn.title = 'Pin panel (keep open)';
+        }
+        this.persistSettings();
+      });
+    }
 
     // Close button event
     const closeBtn = popover.querySelector('.dda-popover-close-btn');
@@ -773,7 +1025,8 @@ class VocabPrep {
 
     // Click outside handler
     this._outsideClickHandler = (e) => {
-      if (wrapper && !wrapper.contains(e.target)) {
+      if (this.isPinned) return; // Keep open when pinned!
+      if (wrapper && !wrapper.contains(e.target) && (!popover || !popover.contains(e.target))) {
         this.closePopup();
       }
     };

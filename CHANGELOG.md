@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-08-31 (Pinnable, Draggable Vocab Panel & Left-Side Layout)
+
+### Added
+- **Pinnable Vocab Panel (`📌`)**:
+  - Added Pin / Unpin button to the header of the vocabulary popover.
+  - When pinned, prevents automatic dismissal on outside clicks (allowing users to type answers into the dictation textarea while keeping vocabulary context in view).
+  - Automatically preserves and restores pinned state across challenges and page reloads via `chrome.storage.local` / `localStorage` (`dda_vocab_pinned`).
+  - Auto-opens fresh vocabulary for subsequent challenges when in pinned state.
+- **Draggable Floating Panel (Drag & Drop)**:
+  - Enabled smooth dragging from the popover header (`cursor: grab` / `cursor: grabbing`) across the viewport with mouse and touch events.
+  - Added viewport boundary clamping to prevent the panel from leaving screen boundaries.
+  - Persists custom user placement coordinates (`dda_vocab_position`) to storage and automatically re-applies them across sessions.
+  - Added visual drag indicator (`⠿`) on the header.
+
+### Changed
+- **Default Left-Side Position**:
+  - Repositioned default vocabulary popover from an anchored dropdown directly over the dictation input to a standalone floating panel on the left side (`left: 24px`, `top: 120px`), ensuring the main textarea and action buttons remain completely unobstructed.
+  - Added responsive fallback alignment for mobile/narrow viewports (`< 768px`).
+
+---
+
 ## [1.3.1] - 2026-08-31 (UX Polish & Bug Fixes)
 
 ### Fixed
