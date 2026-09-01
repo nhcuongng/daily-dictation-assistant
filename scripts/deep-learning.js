@@ -77,6 +77,9 @@ class DeepLearningLoop {
       if (window.WhatIfSound && window.WhatIfSound.isPlaying) {
         window.WhatIfSound.stop();
       }
+      if (window.ddaAudioControl) {
+        window.ddaAudioControl.syncPlaybackRate();
+      }
     }
   }
 

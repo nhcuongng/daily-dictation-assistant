@@ -15,13 +15,17 @@ class AudioControl {
     this.isOpen = false;
     this.boundHandleDocumentClick = this.handleDocumentClick.bind(this);
     this.boundHandleKeydown = this.handleKeydown.bind(this);
+    this.boundHandleAudioEvent = this.handleAudioEvent.bind(this);
+    this._enforcingPlaybackRate = false;
   }
 
   init() {
-    this.audioElement = document.querySelector('audio');
-    if (!this.audioElement) {
+    const audioEl = document.querySelector('audio');
+    if (!audioEl) {
       return false;
     }
+
+    this.bindAudioElement(audioEl);
 
     // Check if we already injected the UI for this specific audio element
     if (this.audioElement.parentNode && this.audioElement.parentNode.querySelector('.dda-speed-control')) {
@@ -34,6 +38,65 @@ class AudioControl {
     return true;
   }
 
+  bindAudioElement(audioEl) {
+    if (!audioEl) return;
+    if (this.audioElement && this.audioElement !== audioEl) {
+      this.unbindAudioEvents();
+    }
+    this.audioElement = audioEl;
+    const events = ['loadstart', 'loadedmetadata', 'canplay', 'play', 'playing', 'ratechange'];
+    events.forEach(evt => {
+      this.audioElement.removeEventListener(evt, this.boundHandleAudioEvent);
+      this.audioElement.addEventListener(evt, this.boundHandleAudioEvent);
+    });
+    this.applyPlaybackRate();
+  }
+
+  unbindAudioEvents() {
+    if (this.audioElement && this.boundHandleAudioEvent) {
+      const events = ['loadstart', 'loadedmetadata', 'canplay', 'play', 'playing', 'ratechange'];
+      events.forEach(evt => {
+        try {
+          this.audioElement.removeEventListener(evt, this.boundHandleAudioEvent);
+        } catch (err) {
+          // ignore
+        }
+      });
+    }
+  }
+
+  applyPlaybackRate() {
+    if (!this.audioElement) return;
+    this._enforcingPlaybackRate = true;
+    try {
+      this.audioElement.defaultPlaybackRate = this.currentSpeed;
+      this.audioElement.playbackRate = this.currentSpeed;
+    } finally {
+      this._enforcingPlaybackRate = false;
+    }
+  }
+
+  handleAudioEvent() {
+    if (!this.audioElement || this._enforcingPlaybackRate) return;
+    if (Math.abs(this.audioElement.playbackRate - this.currentSpeed) > 0.001 ||
+        Math.abs(this.audioElement.defaultPlaybackRate - this.currentSpeed) > 0.001) {
+      this.applyPlaybackRate();
+    }
+  }
+
+  syncPlaybackRate() {
+    const audioEl = document.querySelector('audio');
+    if (!audioEl) return;
+    if (this.audioElement !== audioEl) {
+      this.bindAudioElement(audioEl);
+    } else {
+      if (Math.abs(this.audioElement.playbackRate - this.currentSpeed) > 0.001 ||
+          Math.abs(this.audioElement.defaultPlaybackRate - this.currentSpeed) > 0.001) {
+        this.applyPlaybackRate();
+      }
+    }
+  }
+
   loadSettings(callback) {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       chrome.storage.local.get(['playbackSpeed', 'speedPresets'], (result) => {
@@ -43,15 +106,11 @@ class AudioControl {
         if (result && Array.isArray(result.speedPresets) && result.speedPresets.length > 0) {
           this.presets = this.normalizePresets(result.speedPresets);
         }
-        if (this.audioElement) {
-          this.audioElement.playbackRate = this.currentSpeed;
-        }
+        this.applyPlaybackRate();
         if (callback) callback();
       });
     } else {
-      if (this.audioElement) {
-        this.audioElement.playbackRate = this.currentSpeed;
-      }
+      this.applyPlaybackRate();
       if (callback) callback();
     }
   }
@@ -453,9 +512,7 @@ class AudioControl {
 
   setSpeed(speed, shouldSave = true) {
     this.currentSpeed = Math.round(speed * 100) / 100;
-    if (this.audioElement) {
-      this.audioElement.playbackRate = this.currentSpeed;
-    }
+    this.applyPlaybackRate();
     if (shouldSave && typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       chrome.storage.local.set({ playbackSpeed: this.currentSpeed });
     }
@@ -523,6 +580,7 @@ class AudioControl {
   }
 
   destroy() {
+    this.unbindAudioEvents();
     document.removeEventListener('click', this.boundHandleDocumentClick);
     document.removeEventListener('keydown', this.boundHandleKeydown);
     if (this.container && this.container.parentNode) {

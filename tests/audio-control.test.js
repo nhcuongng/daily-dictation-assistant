@@ -259,4 +259,47 @@ describe('AudioControl', () => {
 
     customCtrl.destroy();
   });
+
+  test('re-applies speed when audio element triggers ratechange or play event resetting rate', () => {
+    audioCtrl.init();
+    audioCtrl.setSpeed(0.85);
+    expect(audioEl.playbackRate).toBe(0.85);
+
+    // Simulate browser / external script resetting playbackRate on sentence transition
+    audioEl.playbackRate = 1.0;
+    audioEl.dispatchEvent(new Event('ratechange'));
+    expect(audioEl.playbackRate).toBe(0.85);
+
+    // Simulate play event
+    audioEl.playbackRate = 1.0;
+    audioEl.dispatchEvent(new Event('play'));
+    expect(audioEl.playbackRate).toBe(0.85);
+
+    // Simulate loadedmetadata event
+    audioEl.playbackRate = 1.0;
+    audioEl.dispatchEvent(new Event('loadedmetadata'));
+    expect(audioEl.playbackRate).toBe(0.85);
+  });
+
+  test('syncPlaybackRate binds newly created audio element after DOM replacement', () => {
+    audioCtrl.init();
+    audioCtrl.setSpeed(1.25);
+    expect(audioEl.playbackRate).toBe(1.25);
+
+    // Remove old audio and insert new audio element (simulating SPA DOM transition)
+    audioEl.remove();
+    const newAudioEl = document.createElement('audio');
+    containerEl.appendChild(newAudioEl);
+
+    audioCtrl.syncPlaybackRate();
+    expect(audioCtrl.audioElement).toBe(newAudioEl);
+    expect(newAudioEl.playbackRate).toBe(1.25);
+    expect(newAudioEl.defaultPlaybackRate).toBe(1.25);
+
+    // Verify events work on the new element
+    newAudioEl.playbackRate = 1.0;
+    newAudioEl.dispatchEvent(new Event('play'));
+    expect(newAudioEl.playbackRate).toBe(1.25);
+  });
 });
+

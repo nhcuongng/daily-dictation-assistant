@@ -29,6 +29,11 @@ function startObserver() {
       window.DeepLearningLoop.checkCurrentChallengeChange();
     }
 
+    // Always keep audio speed in sync with current audio element
+    if (window.ddaAudioControl) {
+      window.ddaAudioControl.syncPlaybackRate();
+    }
+
     // If the UI is already rendered and still in the DOM, skip re-init of controls
     if (window.ddaAudioControl && document.querySelector('.dda-speed-control') && document.querySelector('.dda-actions-container')) {
       return;
