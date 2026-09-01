@@ -39,10 +39,12 @@ async function build() {
   // Configure esbuild
   const buildOptions = {
     entryPoints: [
+      'scripts/background.js',
       'scripts/audio-control.js',
       'scripts/vocab-prep.js',
       'scripts/diff-engine.js',
       'scripts/deep-learning.js',
+      'scripts/what-if-sound.js',
       'scripts/content.js'
     ],
     bundle: true, // Will bundle if there are imports, otherwise just transpile

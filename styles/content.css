@@ -1548,6 +1548,165 @@ body[data-bs-theme="dark"] {
 }
 
 /* ==========================================================================
+   What If Sound? - Pronunciation Sandbox Component
+   ========================================================================== */
+.dda-what-if-sound-container {
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: var(--dda-bg-subtle);
+  border: 1px solid var(--dda-border);
+  border-radius: 8px;
+  box-shadow: var(--dda-shadow-sm);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.dda-what-if-sound-container:focus-within {
+  border-color: var(--dda-border-focus);
+  box-shadow: var(--dda-shadow-md);
+}
+
+.dda-what-if-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  user-select: none;
+}
+
+.dda-what-if-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--dda-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dda-what-if-title strong {
+  font-weight: 600;
+  color: var(--dda-text-primary);
+}
+
+.dda-what-if-hint {
+  font-size: 10.5px;
+  color: var(--dda-text-muted);
+}
+
+.dda-what-if-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dda-what-if-input-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.dda-what-if-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 28px 0 10px;
+  box-sizing: border-box;
+  background: var(--dda-bg-card);
+  border: 1px solid var(--dda-border-strong);
+  border-radius: 6px;
+  color: var(--dda-text-primary);
+  font-size: 12.5px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.dda-what-if-input:focus {
+  outline: none;
+  border-color: var(--dda-accent);
+  box-shadow: 0 0 0 2px var(--dda-accent-glow);
+}
+
+.dda-what-if-input::placeholder {
+  color: var(--dda-text-muted);
+  opacity: 0.85;
+  font-size: 11.5px;
+}
+
+.dda-what-if-btn-clear {
+  position: absolute;
+  right: 5px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--dda-text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.dda-what-if-btn-clear:hover {
+  color: var(--dda-text-primary);
+  background: var(--dda-bg-hover);
+}
+
+.dda-what-if-btn-speak {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--dda-accent);
+  color: #ffffff;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--dda-shadow-sm);
+  user-select: none;
+}
+
+.dda-what-if-btn-speak:hover {
+  filter: brightness(1.08);
+  box-shadow: var(--dda-shadow-md);
+}
+
+.dda-what-if-btn-speak:active {
+  transform: translateY(1px);
+}
+
+.dda-what-if-btn-speak.dda-playing {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #dc2626;
+  animation: ddaTtsPulse 1.5s infinite;
+}
+
+@keyframes ddaTtsPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* ==========================================================================
    Responsive Design & Mobile Adaptations
    ========================================================================== */
 @media (max-width: 560px) {
@@ -1562,4 +1721,12 @@ body[data-bs-theme="dark"] {
   .dda-btn-peek {
     justify-content: center;
   }
+  .dda-what-if-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dda-what-if-btn-speak {
+    justify-content: center;
+  }
 }
+

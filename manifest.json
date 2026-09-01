@@ -4,8 +4,12 @@
   "version": "1.5.1",
   "description": "Boost your Daily Dictation practice: playback speed control, vocab preview, peek transcript, and instant answer diff.",
   "permissions": [
-    "storage"
+    "storage",
+    "tts"
   ],
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
   "host_permissions": [
     "*://*.dailydictation.com/*"
   ],
@@ -23,6 +27,7 @@
         "scripts/vocab-prep.js",
         "scripts/diff-engine.js",
         "scripts/deep-learning.js",
+        "scripts/what-if-sound.js",
         "scripts/content.js"
       ]
     }

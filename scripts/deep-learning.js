@@ -74,6 +74,9 @@ class DeepLearningLoop {
       if (this.isTranscriptPopoverOpen()) {
         this.openTranscriptPopover();
       }
+      if (window.WhatIfSound && window.WhatIfSound.isPlaying) {
+        window.WhatIfSound.stop();
+      }
     }
   }
 
@@ -108,6 +111,11 @@ class DeepLearningLoop {
     const allText = this.getTranscriptText();
     if (allText && window.VocabPrep) {
       window.VocabPrep.renderPanel(allText, vocabContainer, { defaultCollapsed: true });
+    }
+
+    // Render What If Sound component just below actions toolbar (above textarea)
+    if (window.WhatIfSound && textarea.parentNode) {
+      window.WhatIfSound.render(textarea.parentNode, textarea);
     }
 
     // Hotkeys & Enter key handling
