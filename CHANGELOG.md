@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-09-01 (Vocabulary Extension Bridge Enhancement & Proper Nouns Filtering)
+
+### Added
+- **Ecosystem Bridge Payload Expansion**:
+  - `vocabulary-lookup` custom event now passes the full `words` array of the current lesson in `event.detail.words`, allowing the companion Vocabulary Extension to access all lesson vocabulary context.
+- **Proper Nouns & Names Exclusion**:
+  - Added built-in recognition for common English names (Antonio, Susan, Alice, John, Mary, etc.) and mid-sentence capitalized proper nouns/speaker labels, completely excluding them from both `Key Vocab` and `All Words`.
+- **Background POS Pre-fetch**:
+  - Automatically primes the part-of-speech cache in the background on page load.
+
+### Fixed
+- **Clean Vocab Extraction**:
+  - Words with no valid part of speech (`none` POS / 404) are completely filtered out from vocab extraction and removed from the UI.
+
+---
+
 ## [1.5.0] - 2026-09-01 (Zen Lifeline, Real-time Ghost Diff, Pinnable Peek & Resizable Popovers)
 
 ### Added

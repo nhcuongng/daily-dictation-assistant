@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Daily Dictation Assistant",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Boost your Daily Dictation practice: playback speed control, vocab preview, peek transcript, and instant answer diff.",
   "permissions": [
     "storage"

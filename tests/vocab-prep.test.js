@@ -375,6 +375,8 @@ describe('VocabPrep', () => {
 
     expect(eventDispatched).not.toBeNull();
     expect(eventDispatched.word).toBe('symphony');
+    expect(Array.isArray(eventDispatched.words)).toBe(true);
+    expect(eventDispatched.words).toContain('symphony');
     expect(eventDispatched.source).toBe('auto');
     expect(mockOpen).not.toHaveBeenCalled();
 
@@ -578,7 +580,7 @@ describe('VocabPrep', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  test('extractCategorizedVocab skips words cached with "none" (proper nouns/unknown words)', () => {
+  test('extractCategorizedVocab completely skips words cached with "none" (proper nouns/unknown words)', () => {
     prep.saveWordPosToCache('alice', 'none');
     prep.saveWordPosToCache('wonderland', 'n');
 
@@ -590,9 +592,9 @@ describe('VocabPrep', () => {
     expect(allWords).toContain('wonderland');
   });
 
-  test('automatically removes words from DOM and updates counters when API returns no POS', async () => {
+  test('automatically removes words from DOM and updates counters when API returns no POS / none', async () => {
     global.fetch = jest.fn().mockImplementation((url) => {
-      if (url.includes('/alice')) {
+      if (url.includes('/foobarxyz')) {
         return Promise.resolve({ ok: false, status: 404 });
       }
       return Promise.resolve({
@@ -603,22 +605,32 @@ describe('VocabPrep', () => {
 
     const container = document.createElement('div');
     document.body.appendChild(container);
-    const panel = prep.renderPanel('Alice explored wonderland', container);
+    const panel = prep.renderPanel('foobarxyz explored wonderland', container);
     panel.click();
 
     const popover = document.querySelector('.dda-vocab-popover');
     expect(popover).not.toBeNull();
 
-    // Initially 'alice' is in DOM before async fetch resolves
     // Wait for async fetch calls to resolve
     await new Promise(resolve => setTimeout(resolve, 50));
 
     const wordBtns = popover.querySelectorAll('.dda-vocab-word');
     const words = Array.from(wordBtns).map(w => w.getAttribute('data-word'));
 
-    expect(words).not.toContain('alice');
+    expect(words).not.toContain('foobarxyz');
     expect(words).toContain('wonderland');
-    expect(prep.getWordPosFromCache('alice')).toBe('none');
+    expect(prep.getWordPosFromCache('foobarxyz')).toBe('none');
+  });
+
+  test('filters out proper nouns like Antonio and Susan immediately during extraction', () => {
+    const text = 'Antonio: Have you seen Susan today? Mr. Henderson told me she was in London.';
+    const { keyWords, allWords } = prep.extractCategorizedVocab(text);
+
+    expect(allWords).not.toContain('antonio');
+    expect(allWords).not.toContain('susan');
+    expect(allWords).not.toContain('henderson');
+    expect(allWords).not.toContain('london');
+    expect(allWords).toContain('today');
   });
 
   test('toggles pin state on pin button click, persists setting, and updates pin button UI', () => {

@@ -74,6 +74,36 @@ class VocabPrep {
       'store', 'market', 'hotel', 'center', 'centre', 'cross', 'front', 'hall', 'court', 'garden'
     ]);
 
+    // Common Proper Nouns & Names
+    this.properNouns = new Set([
+      'antonio', 'susan', 'alice', 'john', 'mary', 'alex', 'david', 'michael', 'sarah', 'lisa',
+      'james', 'robert', 'william', 'richard', 'thomas', 'charles', 'daniel', 'matthew', 'anthony',
+      'mark', 'donald', 'steven', 'paul', 'andrew', 'joshua', 'kevin', 'brian', 'george', 'edward',
+      'ronald', 'timothy', 'jason', 'jeffrey', 'ryan', 'jacob', 'gary', 'nicholas', 'eric',
+      'jonathan', 'stephen', 'larry', 'justin', 'scott', 'brandon', 'benjamin', 'samuel', 'gregory',
+      'frank', 'alexander', 'raymond', 'patrick', 'jack', 'dennis', 'jerry', 'tyler', 'aaron',
+      'jose', 'henry', 'adam', 'douglas', 'nathan', 'peter', 'zachary', 'kyle', 'walter', 'harold',
+      'jeremy', 'ethan', 'carl', 'keith', 'roger', 'gerald', 'christian', 'terry', 'sean',
+      'arthur', 'austin', 'noah', 'lawrence', 'jesse', 'joe', 'bryan', 'billy', 'jordan', 'albert',
+      'dylan', 'bruce', 'willie', 'gabriel', 'logan', 'alan', 'juan', 'wayne', 'roy', 'ralph',
+      'randy', 'eugene', 'vincent', 'russell', 'louis', 'philip', 'bobby', 'johnny', 'bradley',
+      'emma', 'olivia', 'ava', 'isabella', 'sophia', 'charlotte', 'mia', 'amelia', 'harper',
+      'evelyn', 'abigail', 'emily', 'elizabeth', 'mila', 'ella', 'avery', 'sofia', 'camila',
+      'aria', 'scarlett', 'victoria', 'madison', 'luna', 'grace', 'chloe', 'penelope', 'layla',
+      'riley', 'zoey', 'nora', 'lily', 'eleanor', 'hannah', 'lillian', 'addison', 'aubrey',
+      'ellie', 'stella', 'natalie', 'zoe', 'leah', 'hazel', 'violet', 'aurora', 'savannah',
+      'audrey', 'brooklyn', 'bella', 'claire', 'skylar', 'lucy', 'paisley', 'everly', 'anna',
+      'caroline', 'nova', 'genesis', 'emilia', 'kennedy', 'samantha', 'maya', 'willow', 'kinsley',
+      'naomi', 'aaliyah', 'elena', 'ariana', 'allison', 'gabriella', 'madelyn', 'cora', 'ruby',
+      'eva', 'serenity', 'autumn', 'adeline', 'hailey', 'gianna', 'valentina', 'isla', 'eliana',
+      'quinn', 'nevaeh', 'ivy', 'sadie', 'piper', 'lydia', 'alexa', 'josephine', 'emery', 'julia',
+      'delilah', 'arianna', 'vivian', 'kaylee', 'sophie', 'brielle', 'madeline', 'peyton', 'rylee',
+      'clara', 'hadley', 'melanie', 'mackenzie', 'reagan', 'adelaide', 'lucas', 'liam', 'oliver',
+      'charlie', 'mateo', 'elias', 'ezra', 'silas', 'miles', 'felix', 'jasper', 'claudia', 'diana',
+      'eliza', 'fiona', 'gemma', 'helen', 'iris', 'laura', 'monica', 'nina', 'paula', 'rosa',
+      'tanya', 'vera', 'wanda', 'zelda', 'tom', 'sam', 'ben', 'dan', 'tim', 'bob', 'ann', 'jane'
+    ]);
+
     this.tips = [
       '💡 Tip: Preview words before listening',
       '💡 Tip: Catch key words before the audio',
@@ -309,15 +339,27 @@ class VocabPrep {
     return typeof document !== 'undefined' && Boolean(document.getElementById('vocabulary-lookup'));
   }
 
-  triggerVocabularyLookup(word, rect = null, source = 'auto') {
+  triggerVocabularyLookup(word, rect = null, source = 'auto', words = null) {
     if (typeof document === 'undefined') return false;
     const bridgeElement = document.getElementById('vocabulary-lookup');
     if (!bridgeElement) return false;
+
+    let wordsList = [];
+    if (Array.isArray(words) && words.length > 0) {
+      wordsList = words;
+    } else if (Array.isArray(this.currentAllWords) && this.currentAllWords.length > 0) {
+      wordsList = this.currentAllWords;
+    } else if (Array.isArray(this.currentCategorizedWords)) {
+      wordsList = this.currentCategorizedWords;
+    } else if (this.currentCategorizedWords && Array.isArray(this.currentCategorizedWords.allWords)) {
+      wordsList = this.currentCategorizedWords.allWords;
+    }
 
     bridgeElement.dispatchEvent(new CustomEvent('vocabulary-lookup', {
       bubbles: true,
       detail: {
         word: (word || '').trim(),
+        words: wordsList,
         rect: rect,
         source: source
       }
@@ -325,13 +367,13 @@ class VocabPrep {
     return true;
   }
 
-  lookupWord(word, element = null) {
+  lookupWord(word, element = null, words = null) {
     if (!word) return;
     const cleanWord = word.toLowerCase().trim();
 
     if (this.hasVocabularyExtension()) {
       const rect = element && typeof element.getBoundingClientRect === 'function' ? element.getBoundingClientRect() : null;
-      const sent = this.triggerVocabularyLookup(cleanWord, rect, 'auto');
+      const sent = this.triggerVocabularyLookup(cleanWord, rect, 'auto', words);
       if (sent) return 'extension';
     }
 
@@ -443,6 +485,11 @@ class VocabPrep {
     return score;
   }
 
+  isProperNoun(word) {
+    if (!word || typeof word !== 'string') return false;
+    return Boolean(this.properNouns && this.properNouns.has(word.toLowerCase().trim()));
+  }
+
   /**
    * Pre-processes raw text and extracts categorized vocabulary:
    * - keyWords: High-value content words sorted by academic & linguistic weight
@@ -450,6 +497,19 @@ class VocabPrep {
    */
   extractCategorizedVocab(text) {
     if (!text || typeof text !== 'string') return { keyWords: [], allWords: [] };
+
+    // Heuristic: Detect mid-sentence capitalized proper nouns (words with Capital letters not after sentence-ending punctuation)
+    const detectedProperNouns = new Set();
+    const midSentenceRegex = /(?:[a-z,]|\b(?:[Mm]r|[Mm]rs|[Mm]s|[Dd]r|[Pp]rof|[Ss]peaker)\.?)\s+([A-Z][a-z]{2,})\b/g;
+    let m;
+    while ((m = midSentenceRegex.exec(text)) !== null) {
+      detectedProperNouns.add(m[1].toLowerCase());
+    }
+    // Match speaker labels like "Antonio:", "Susan:"
+    const speakerRegex = /\b([A-Z][a-z]{2,}):/g;
+    while ((m = speakerRegex.exec(text)) !== null) {
+      detectedProperNouns.add(m[1].toLowerCase());
+    }
 
     // Clean contractions: "don't" -> "do not", "they're" -> "they", "we've" -> "we"
     const cleanedText = text
@@ -463,7 +523,7 @@ class VocabPrep {
 
     rawTokens.forEach(t => {
       const clean = t.toLowerCase().trim();
-      if (clean.length > 3 && !this.isStopWord(clean)) {
+      if (clean.length > 3 && !this.isStopWord(clean) && !this.isProperNoun(clean) && !detectedProperNouns.has(clean)) {
         const cachedPos = this.getWordPosFromCache(clean);
         
         // Exclude words known to have no dictionary POS (proper names, invalid words)
@@ -505,6 +565,17 @@ class VocabPrep {
   renderPanel(text, container, options = {}) {
     const { keyWords, allWords } = this.extractCategorizedVocab(text);
     if (allWords.length === 0) return null;
+
+    // Background pre-fetch POS to prime LRU cache
+    if (allWords.length > 0) {
+      setTimeout(() => {
+        allWords.forEach(w => {
+          if (!this.getWordPosFromCache(w)) {
+            this.fetchWordPos(w).catch(() => {});
+          }
+        });
+      }, 50);
+    }
 
     // Remove existing wrapper if any
     const existing = container.querySelector('.dda-vocab-wrapper');
@@ -743,6 +814,9 @@ class VocabPrep {
 
     if (allWords.length === 0 || !wrapper) return null;
 
+    this.currentKeyWords = keyWords;
+    this.currentAllWords = allWords;
+
     this.closePopup(); // Close any active popover
 
     if (panel) {
@@ -861,7 +935,7 @@ class VocabPrep {
 
       listContainer.innerHTML = wordsToRender.map(w => {
         const cachedPos = this.getWordPosFromCache(w);
-        const posHtml = cachedPos
+        const posHtml = (cachedPos && cachedPos !== 'none')
           ? `<span class="dda-vocab-pos dda-pos-${cachedPos}">${cachedPos}</span>`
           : `<span class="dda-vocab-pos" style="display: none;"></span>`;
         return `<button type="button" class="dda-vocab-word" data-word="${w}" title="${hasExt ? `Click to look up &quot;${w}&quot; with Vocabulary Extension ↗` : `Click to look up &quot;${w}&quot; on ${provider.fullName} ↗`}"><span class="dda-word-label">${w}</span>${posHtml}</button>`;
@@ -874,7 +948,7 @@ class VocabPrep {
           e.preventDefault();
           e.stopPropagation();
           const word = el.getAttribute('data-word') || el.querySelector('.dda-word-label')?.textContent.trim() || el.textContent.trim();
-          this.lookupWord(word, el);
+          this.lookupWord(word, el, wordsToRender);
         });
       });
 
@@ -885,8 +959,8 @@ class VocabPrep {
           this.fetchWordPos(w).then(pos => {
             if (!document.body.contains(popover)) return;
 
-            // If word has no valid POS from dictionary API (proper noun like Alice, unknown/404)
-            if (!pos) {
+            // If word has no valid POS from dictionary API (proper noun like Alice, unknown/404), completely remove
+            if (!pos || pos === 'none') {
               const kIdx = keyWords.indexOf(w);
               if (kIdx !== -1) keyWords.splice(kIdx, 1);
               const aIdx = allWords.indexOf(w);
@@ -959,7 +1033,7 @@ class VocabPrep {
       const counts = { all: allWordsList.length, n: 0, v: 0, adj: 0, adv: 0 };
       allWordsList.forEach(w => {
         const p = this.getWordPosFromCache(w);
-        if (p && counts[p] !== undefined) {
+        if (p && p !== 'none' && counts[p] !== undefined) {
           counts[p]++;
         }
       });
