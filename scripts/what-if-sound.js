@@ -1,6 +1,8 @@
 // What If Sound? - Pronunciation Sandbox Component
 // Allows dictation learners to test and compare English pronunciation on the fly using chrome.tts
 
+const ICONS = typeof DDA_ICONS !== 'undefined' ? DDA_ICONS : (typeof require !== 'undefined' ? require('./icons.js') : null);
+
 class WhatIfSound {
   constructor() {
     this.isPlaying = false;
@@ -62,10 +64,7 @@ class WhatIfSound {
     
     const titleSpan = document.createElement('span');
     titleSpan.className = 'dda-what-if-title';
-    titleSpan.textContent = '🔊 ';
-    const titleStrong = document.createElement('strong');
-    titleStrong.textContent = 'What If Sound?';
-    titleSpan.appendChild(titleStrong);
+    titleSpan.innerHTML = `${ICONS ? ICONS.speaker(14) : '🔊 '} <strong>What If Sound?</strong>`;
     
     const hintSpan = document.createElement('span');
     hintSpan.className = 'dda-what-if-hint';
@@ -95,7 +94,7 @@ class WhatIfSound {
     clearBtn.className = 'dda-what-if-btn-clear';
     clearBtn.title = 'Clear text (Esc)';
     clearBtn.setAttribute('aria-label', 'Clear text');
-    clearBtn.textContent = '✕';
+    clearBtn.innerHTML = ICONS ? ICONS.close(12) : '✕';
     clearBtn.style.display = 'none';
     this.clearBtn = clearBtn;
 
@@ -110,7 +109,7 @@ class WhatIfSound {
     
     const iconSpan = document.createElement('span');
     iconSpan.className = 'dda-what-if-icon';
-    iconSpan.textContent = '🔊';
+    iconSpan.innerHTML = ICONS ? ICONS.speaker(14) : '🔊';
 
     const labelSpan = document.createElement('span');
     labelSpan.className = 'dda-what-if-label';
@@ -239,7 +238,7 @@ class WhatIfSound {
     if (this.isPlaying) {
       this.speakBtn.classList.add('dda-playing');
       if (icon) {
-        icon.textContent = '⏹️';
+        icon.innerHTML = ICONS ? ICONS.stop(12) : '⏹️';
         icon.classList.add('dda-anim-pulse');
       }
       if (label) label.textContent = 'Stop';
@@ -247,7 +246,7 @@ class WhatIfSound {
     } else {
       this.speakBtn.classList.remove('dda-playing');
       if (icon) {
-        icon.textContent = '🔊';
+        icon.innerHTML = ICONS ? ICONS.speaker(14) : '🔊';
         icon.classList.remove('dda-anim-pulse');
       }
       if (label) label.textContent = 'Speak';
@@ -255,11 +254,13 @@ class WhatIfSound {
     }
   }
 
-  clearText() {
+  clearText(shouldFocus = true) {
     if (this.inputEl) {
       this.inputEl.value = '';
       this.updateControlsState();
-      this.inputEl.focus();
+      if (shouldFocus) {
+        this.inputEl.focus();
+      }
     }
     if (this.isPlaying) {
       this.stop();

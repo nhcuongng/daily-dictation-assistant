@@ -1,13 +1,22 @@
+const ICONS = typeof DDA_ICONS !== 'undefined' ? DDA_ICONS : (typeof require !== 'undefined' ? require('./icons.js') : null);
+
 class AudioControl {
   constructor() {
     this.audioElement = null;
     this.container = null;
+    this.widgetGroup = null;
+    this.prevBtn = null;
+    this.nextBtn = null;
+    this.speedValBtn = null;
     this.pillBtn = null;
+    this.quickResetBtn = null;
     this.popover = null;
+    this.resetBtn = null;
     this.presetsGrid = null;
     this.configPanel = null;
     this.configSlotsList = null;
     this.currentSpeed = 1.0;
+    this.defaultSpeed = 1.0;
     this.defaultPresets = [0.75, 0.85, 1.0, 1.15, 1.25, 1.5];
     this.presets = [...this.defaultPresets];
     this.maxPresets = 8;
@@ -99,9 +108,12 @@ class AudioControl {
 
   loadSettings(callback) {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get(['playbackSpeed', 'speedPresets'], (result) => {
+      chrome.storage.local.get(['playbackSpeed', 'speedPresets', 'defaultSpeed'], (result) => {
         if (result && typeof result.playbackSpeed === 'number') {
           this.currentSpeed = Math.round(result.playbackSpeed * 100) / 100;
+        }
+        if (result && typeof result.defaultSpeed === 'number') {
+          this.defaultSpeed = Math.round(result.defaultSpeed * 100) / 100;
         }
         if (result && Array.isArray(result.speedPresets) && result.speedPresets.length > 0) {
           this.presets = this.normalizePresets(result.speedPresets);
@@ -115,6 +127,19 @@ class AudioControl {
     }
   }
 
+  setDefaultSpeed(speed) {
+    this.defaultSpeed = Math.round(speed * 100) / 100;
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ defaultSpeed: this.defaultSpeed });
+    }
+    this.renderPresetsGrid();
+    this.updatePillContent();
+    if (this.resetBtn) {
+      this.resetBtn.innerHTML = `${ICONS ? ICONS.reset(13) : '↺'} Reset (${this.formatSpeed(this.defaultSpeed)})`;
+      this.resetBtn.title = `Reset playback speed to default (${this.formatSpeed(this.defaultSpeed)})`;
+    }
+  }
+
   normalizePresets(arr) {
     const valid = arr
       .map(v => parseFloat(v))
@@ -123,6 +148,38 @@ class AudioControl {
     const unique = Array.from(new Set(valid));
     unique.sort((a, b) => a - b);
     return unique.length > 0 ? unique : [...this.defaultPresets];
+  }
+
+  prevPreset() {
+    if (!this.presets || this.presets.length === 0) return;
+    const sorted = [...this.presets].sort((a, b) => a - b);
+    const lower = sorted.filter(p => p < this.currentSpeed - 0.001);
+    const target = lower.length > 0 ? lower[lower.length - 1] : sorted[sorted.length - 1];
+    this.setSpeed(target);
+  }
+
+  nextPreset() {
+    if (!this.presets || this.presets.length === 0) return;
+    const sorted = [...this.presets].sort((a, b) => a - b);
+    const higher = sorted.filter(p => p > this.currentSpeed + 0.001);
+    const target = higher.length > 0 ? higher[0] : sorted[0];
+    this.setSpeed(target);
+  }
+
+  stepSpeed(delta) {
+    const nextVal = Math.max(0.5, Math.min(2.0, Math.round((this.currentSpeed + delta) * 100) / 100));
+    this.setSpeed(nextVal);
+  }
+
+  stepPresetSlot(index, delta) {
+    if (index < 0 || index >= this.presets.length) return;
+    const current = this.presets[index];
+    const nextVal = Math.max(0.5, Math.min(2.0, Math.round((current + delta) * 100) / 100));
+    this.presets[index] = nextVal;
+    this.presets = this.normalizePresets(this.presets);
+    this.renderPresetsGrid();
+    this.renderConfigSlots();
+    this.savePresetsToStorage();
   }
 
   renderUI() {
@@ -135,25 +192,71 @@ class AudioControl {
     this.container = document.createElement('div');
     this.container.className = 'dda-speed-control dda-speed-control-wrapper';
 
-    // Trigger Pill
-    this.pillBtn = document.createElement('button');
-    this.pillBtn.type = 'button';
-    this.pillBtn.className = 'dda-speed-pill';
-    this.pillBtn.setAttribute('aria-label', 'Change playback speed');
-    this.pillBtn.setAttribute('title', 'Click to adjust speed (Double-click to reset 1.0x)');
-    this.updatePillContent();
+    // Segmented Widget Group
+    this.widgetGroup = document.createElement('div');
+    this.widgetGroup.className = 'dda-speed-widget-group';
 
-    this.pillBtn.addEventListener('click', (e) => {
+    // Prev Preset Button
+    this.prevBtn = document.createElement('button');
+    this.prevBtn.type = 'button';
+    this.prevBtn.className = 'dda-speed-nav-btn dda-speed-prev-btn';
+    this.prevBtn.setAttribute('aria-label', 'Previous speed preset');
+    this.prevBtn.setAttribute('title', 'Previous preset speed');
+    this.prevBtn.innerHTML = ICONS ? ICONS.chevronLeft(14) : '‹';
+    this.prevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.prevPreset();
+    });
+
+    // Speed Value Button (center) - click to toggle popover, double click to reset
+    this.speedValBtn = document.createElement('button');
+    this.speedValBtn.type = 'button';
+    this.speedValBtn.className = 'dda-speed-pill dda-speed-val-btn';
+    this.speedValBtn.setAttribute('aria-label', 'Playback speed');
+    this.pillBtn = this.speedValBtn;
+
+    this.speedValBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this.togglePopover();
     });
 
-    this.pillBtn.addEventListener('dblclick', (e) => {
+    this.speedValBtn.addEventListener('dblclick', (e) => {
       e.stopPropagation();
-      this.setSpeed(1.0);
+      this.setSpeed(this.defaultSpeed);
     });
 
-    this.container.appendChild(this.pillBtn);
+    // Quick Reset Button - only shows when currentSpeed !== defaultSpeed
+    this.quickResetBtn = document.createElement('button');
+    this.quickResetBtn.type = 'button';
+    this.quickResetBtn.className = 'dda-speed-quick-reset';
+    this.quickResetBtn.setAttribute('aria-label', 'Reset to default speed');
+    this.quickResetBtn.setAttribute('title', `Reset to default (${this.formatSpeed(this.defaultSpeed)})`);
+    this.quickResetBtn.innerHTML = ICONS ? ICONS.reset(13) : '↺';
+    this.quickResetBtn.style.display = 'none';
+    this.quickResetBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.setSpeed(this.defaultSpeed);
+    });
+
+    // Next Preset Button
+    this.nextBtn = document.createElement('button');
+    this.nextBtn.type = 'button';
+    this.nextBtn.className = 'dda-speed-nav-btn dda-speed-next-btn';
+    this.nextBtn.setAttribute('aria-label', 'Next speed preset');
+    this.nextBtn.setAttribute('title', 'Next preset speed');
+    this.nextBtn.innerHTML = ICONS ? ICONS.chevronRight(14) : '›';
+    this.nextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.nextPreset();
+    });
+
+    this.widgetGroup.appendChild(this.prevBtn);
+    this.widgetGroup.appendChild(this.speedValBtn);
+    this.widgetGroup.appendChild(this.quickResetBtn);
+    this.widgetGroup.appendChild(this.nextBtn);
+    this.container.appendChild(this.widgetGroup);
+
+    this.updatePillContent();
 
     // Build Popover
     this.buildPopover();
@@ -167,33 +270,33 @@ class AudioControl {
   }
 
   updatePillContent() {
-    if (!this.pillBtn) return;
+    if (!this.speedValBtn) return;
     const formattedSpeed = this.formatSpeed(this.currentSpeed);
-    const isNonDefault = Math.abs(this.currentSpeed - 1.0) > 0.01;
+    const isNonDefault = Math.abs(this.currentSpeed - this.defaultSpeed) > 0.01;
     
     if (isNonDefault) {
-      this.pillBtn.classList.add('dda-speed-active');
+      this.speedValBtn.classList.add('dda-speed-active');
+      if (this.widgetGroup) this.widgetGroup.classList.add('dda-speed-active');
+      if (this.quickResetBtn) {
+        this.quickResetBtn.style.display = 'inline-flex';
+        this.quickResetBtn.setAttribute('title', `Reset to default (${this.formatSpeed(this.defaultSpeed)})`);
+      }
     } else {
-      this.pillBtn.classList.remove('dda-speed-active');
+      this.speedValBtn.classList.remove('dda-speed-active');
+      if (this.widgetGroup) this.widgetGroup.classList.remove('dda-speed-active');
+      if (this.quickResetBtn) {
+        this.quickResetBtn.style.display = 'none';
+      }
     }
 
-    this.pillBtn.textContent = '';
-
-    const iconSpan = document.createElement('span');
-    iconSpan.className = 'dda-speed-icon';
-    iconSpan.textContent = '⚡';
+    this.speedValBtn.textContent = '';
 
     const valueSpan = document.createElement('span');
     valueSpan.className = 'dda-speed-value';
     valueSpan.textContent = formattedSpeed;
 
-    const chevronSpan = document.createElement('span');
-    chevronSpan.className = 'dda-speed-chevron';
-    chevronSpan.textContent = '▾';
-
-    this.pillBtn.appendChild(iconSpan);
-    this.pillBtn.appendChild(valueSpan);
-    this.pillBtn.appendChild(chevronSpan);
+    this.speedValBtn.appendChild(valueSpan);
+    this.speedValBtn.setAttribute('title', `Click to adjust speed (Double-click to reset ${this.formatSpeed(this.defaultSpeed)})`);
   }
 
   buildPopover() {
@@ -207,21 +310,21 @@ class AudioControl {
 
     const titleBox = document.createElement('div');
     titleBox.className = 'dda-speed-popover-title';
-    titleBox.textContent = '⚡ Playback Speed';
+    titleBox.textContent = 'Playback Speed';
 
-    const resetBtn = document.createElement('button');
-    resetBtn.type = 'button';
-    resetBtn.className = 'dda-speed-reset-btn';
-    resetBtn.title = 'Reset playback speed to 1.0x';
-    resetBtn.textContent = '↺ Reset 1.0x';
+    this.resetBtn = document.createElement('button');
+    this.resetBtn.type = 'button';
+    this.resetBtn.className = 'dda-speed-reset-btn';
+    this.resetBtn.title = `Reset playback speed to default (${this.formatSpeed(this.defaultSpeed)})`;
+    this.resetBtn.innerHTML = `${ICONS ? ICONS.reset(13) : '↺'} Reset (${this.formatSpeed(this.defaultSpeed)})`;
 
-    resetBtn.addEventListener('click', (e) => {
+    this.resetBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      this.setSpeed(1.0);
+      this.setSpeed(this.defaultSpeed);
     });
 
     header.appendChild(titleBox);
-    header.appendChild(resetBtn);
+    header.appendChild(this.resetBtn);
     this.popover.appendChild(header);
 
     // Popover Body
@@ -234,7 +337,7 @@ class AudioControl {
 
     const presetsLabel = document.createElement('div');
     presetsLabel.className = 'dda-speed-section-label';
-    presetsLabel.textContent = 'QUICK PRESETS';
+    presetsLabel.textContent = 'QUICK PRESETS (★ SET DEFAULT)';
     presetsSection.appendChild(presetsLabel);
     
     this.presetsGrid = document.createElement('div');
@@ -243,7 +346,7 @@ class AudioControl {
     presetsSection.appendChild(this.presetsGrid);
     body.appendChild(presetsSection);
 
-    // Section 2: Fine Tuning Slider
+    // Section 2: Fine Tuning Slider & Steppers
     const fineTuningSection = document.createElement('div');
     fineTuningSection.className = 'dda-speed-section';
 
@@ -269,6 +372,17 @@ class AudioControl {
     boundMin.className = 'dda-speed-slider-bound';
     boundMin.textContent = '0.5x';
 
+    const stepDownBtn = document.createElement('button');
+    stepDownBtn.type = 'button';
+    stepDownBtn.className = 'dda-speed-stepper-btn dda-speed-step-down';
+    stepDownBtn.title = 'Decrease speed (-0.05x)';
+    stepDownBtn.setAttribute('aria-label', 'Decrease speed');
+    stepDownBtn.innerHTML = ICONS ? ICONS.minus(12) : '−';
+    stepDownBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.stepSpeed(-0.05);
+    });
+
     this.sliderInput = document.createElement('input');
     this.sliderInput.type = 'range';
     this.sliderInput.className = 'dda-speed-slider-input';
@@ -277,12 +391,25 @@ class AudioControl {
     this.sliderInput.step = '0.05';
     this.sliderInput.value = String(this.currentSpeed);
 
+    const stepUpBtn = document.createElement('button');
+    stepUpBtn.type = 'button';
+    stepUpBtn.className = 'dda-speed-stepper-btn dda-speed-step-up';
+    stepUpBtn.title = 'Increase speed (+0.05x)';
+    stepUpBtn.setAttribute('aria-label', 'Increase speed');
+    stepUpBtn.innerHTML = ICONS ? ICONS.plus(12) : '+';
+    stepUpBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.stepSpeed(0.05);
+    });
+
     const boundMax = document.createElement('span');
     boundMax.className = 'dda-speed-slider-bound';
     boundMax.textContent = '2.0x';
 
     sliderWrap.appendChild(boundMin);
+    sliderWrap.appendChild(stepDownBtn);
     sliderWrap.appendChild(this.sliderInput);
+    sliderWrap.appendChild(stepUpBtn);
     sliderWrap.appendChild(boundMax);
     fineTuningSection.appendChild(sliderWrap);
 
@@ -310,11 +437,12 @@ class AudioControl {
     configToggle.className = 'dda-speed-config-toggle';
 
     const configToggleText = document.createElement('span');
-    configToggleText.textContent = '⚙️ Custom Presets';
+    configToggleText.className = 'dda-config-toggle-label';
+    configToggleText.innerHTML = `${ICONS ? ICONS.gear(13) : ''} Custom Presets`;
 
     const configToggleArrow = document.createElement('span');
     configToggleArrow.className = 'dda-config-toggle-arrow';
-    configToggleArrow.textContent = '▸';
+    configToggleArrow.innerHTML = ICONS ? ICONS.chevronDown(12) : '▸';
 
     configToggle.appendChild(configToggleText);
     configToggle.appendChild(configToggleArrow);
@@ -325,7 +453,7 @@ class AudioControl {
 
     const configHint = document.createElement('div');
     configHint.className = 'dda-config-hint';
-    configHint.textContent = 'Drag sliders to customize quick preset buttons:';
+    configHint.textContent = 'Adjust preset slots and fine-tune with − / +:';
     this.configPanel.appendChild(configHint);
 
     this.configSlotsList = document.createElement('div');
@@ -338,7 +466,7 @@ class AudioControl {
     const addBtn = document.createElement('button');
     addBtn.type = 'button';
     addBtn.className = 'dda-btn dda-btn-add-preset';
-    addBtn.textContent = '＋ Add Preset';
+    addBtn.innerHTML = `${ICONS ? ICONS.plus(12) : '+'} Add Preset`;
     addBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this.addPresetSlot();
@@ -347,7 +475,7 @@ class AudioControl {
     const defaultBtn = document.createElement('button');
     defaultBtn.type = 'button';
     defaultBtn.className = 'dda-btn dda-btn-default-presets';
-    defaultBtn.textContent = '↺ Defaults';
+    defaultBtn.innerHTML = `${ICONS ? ICONS.reset(12) : '↺'} Defaults`;
     defaultBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this.resetDefaultPresets();
@@ -361,7 +489,6 @@ class AudioControl {
       e.stopPropagation();
       const isExpanded = this.configPanel.style.display !== 'none';
       this.configPanel.style.display = isExpanded ? 'none' : 'block';
-      configToggleArrow.textContent = isExpanded ? '▸' : '▾';
       configToggle.classList.toggle('expanded', !isExpanded);
     });
 
@@ -375,7 +502,7 @@ class AudioControl {
     // Popover Footer Tip
     const footer = document.createElement('div');
     footer.className = 'dda-speed-popover-footer';
-    footer.textContent = '💡 Tip: Double-click trigger pill to reset 1.0x';
+    footer.textContent = '💡 Tip: Double-click widget speed to reset default';
     this.popover.appendChild(footer);
 
     // Prevent clicks inside popover from closing it
@@ -388,19 +515,42 @@ class AudioControl {
     if (!this.presetsGrid) return;
     this.presetsGrid.textContent = '';
     this.presets.forEach(preset => {
+      const itemWrapper = document.createElement('div');
+      itemWrapper.className = 'dda-speed-preset-item';
+      if (Math.abs(preset - this.currentSpeed) < 0.01) {
+        itemWrapper.classList.add('dda-preset-active');
+      }
+
+      const isDefault = Math.abs(preset - this.defaultSpeed) < 0.01;
+      if (isDefault) {
+        itemWrapper.classList.add('dda-preset-is-default');
+      }
+
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'dda-speed-preset-btn';
-      const formatted = this.formatSpeed(preset);
-      btn.textContent = formatted;
-      if (Math.abs(preset - this.currentSpeed) < 0.01) {
-        btn.classList.add('dda-preset-active');
-      }
+      btn.textContent = this.formatSpeed(preset);
+      btn.title = `Select ${this.formatSpeed(preset)}`;
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.setSpeed(preset);
       });
-      this.presetsGrid.appendChild(btn);
+
+      const starBtn = document.createElement('button');
+      starBtn.type = 'button';
+      starBtn.className = 'dda-preset-star-btn';
+      if (isDefault) starBtn.classList.add('dda-star-active');
+      starBtn.innerHTML = ICONS ? ICONS.star(isDefault, 13) : (isDefault ? '★' : '☆');
+      starBtn.title = isDefault ? `Default speed (${this.formatSpeed(preset)})` : `Set ${this.formatSpeed(preset)} as default speed`;
+      starBtn.setAttribute('aria-label', `Set ${this.formatSpeed(preset)} as default speed`);
+      starBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setDefaultSpeed(preset);
+      });
+
+      itemWrapper.appendChild(btn);
+      itemWrapper.appendChild(starBtn);
+      this.presetsGrid.appendChild(itemWrapper);
     });
   }
 
@@ -416,6 +566,17 @@ class AudioControl {
       label.className = 'dda-preset-slot-label';
       label.textContent = `#${index + 1}`;
 
+      const stepDownBtn = document.createElement('button');
+      stepDownBtn.type = 'button';
+      stepDownBtn.className = 'dda-slot-stepper-btn dda-slot-step-down';
+      stepDownBtn.title = 'Decrease preset (-0.05x)';
+      stepDownBtn.setAttribute('aria-label', 'Decrease preset');
+      stepDownBtn.innerHTML = ICONS ? ICONS.minus(11) : '−';
+      stepDownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.stepPresetSlot(index, -0.05);
+      });
+
       const slider = document.createElement('input');
       slider.type = 'range';
       slider.className = 'dda-preset-slot-slider';
@@ -423,6 +584,17 @@ class AudioControl {
       slider.max = '2.0';
       slider.step = '0.05';
       slider.value = String(preset);
+
+      const stepUpBtn = document.createElement('button');
+      stepUpBtn.type = 'button';
+      stepUpBtn.className = 'dda-slot-stepper-btn dda-slot-step-up';
+      stepUpBtn.title = 'Increase preset (+0.05x)';
+      stepUpBtn.setAttribute('aria-label', 'Increase preset');
+      stepUpBtn.innerHTML = ICONS ? ICONS.plus(11) : '+';
+      stepUpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.stepPresetSlot(index, 0.05);
+      });
 
       const badge = document.createElement('span');
       badge.className = 'dda-preset-slot-badge';
@@ -432,7 +604,7 @@ class AudioControl {
       removeBtn.type = 'button';
       removeBtn.className = 'dda-preset-slot-remove';
       removeBtn.title = 'Remove preset';
-      removeBtn.textContent = '✕';
+      removeBtn.innerHTML = ICONS ? ICONS.close(11) : '✕';
       if (this.presets.length <= this.minPresets) {
         removeBtn.disabled = true;
         removeBtn.classList.add('disabled');
@@ -458,7 +630,9 @@ class AudioControl {
       });
 
       row.appendChild(label);
+      row.appendChild(stepDownBtn);
       row.appendChild(slider);
+      row.appendChild(stepUpBtn);
       row.appendChild(badge);
       row.appendChild(removeBtn);
       this.configSlotsList.appendChild(row);
@@ -528,13 +702,16 @@ class AudioControl {
       this.sliderDisplay.textContent = this.formatSpeed(this.currentSpeed);
     }
     if (this.presetsGrid) {
-      const btns = this.presetsGrid.querySelectorAll('.dda-speed-preset-btn');
-      btns.forEach((btn) => {
-        const val = parseFloat(btn.textContent);
-        if (Math.abs(val - this.currentSpeed) < 0.01) {
-          btn.classList.add('dda-preset-active');
-        } else {
-          btn.classList.remove('dda-preset-active');
+      const items = this.presetsGrid.querySelectorAll('.dda-speed-preset-item');
+      items.forEach((item) => {
+        const btn = item.querySelector('.dda-speed-preset-btn');
+        if (btn) {
+          const val = parseFloat(btn.textContent);
+          if (Math.abs(val - this.currentSpeed) < 0.01) {
+            item.classList.add('dda-preset-active');
+          } else {
+            item.classList.remove('dda-preset-active');
+          }
         }
       });
     }

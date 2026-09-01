@@ -127,7 +127,7 @@ describe('VocabPrep', () => {
 
     const toggleIcon = panel.querySelector('.dda-vocab-toggle-icon');
     expect(toggleIcon).not.toBeNull();
-    expect(toggleIcon.textContent).toBe('↗');
+    expect(toggleIcon.querySelector('svg')).not.toBeNull();
   });
 
   test('opens anchored popover with 2-tab switcher and displays key words by default', () => {

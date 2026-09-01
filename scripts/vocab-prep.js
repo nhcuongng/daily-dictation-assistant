@@ -1,3 +1,5 @@
+const ICONS = typeof DDA_ICONS !== 'undefined' ? DDA_ICONS : (typeof require !== 'undefined' ? require('./icons.js') : null);
+
 class VocabPrep {
   constructor() {
     // Expanded Stopwords / Function words (~350 words)
@@ -598,7 +600,7 @@ class VocabPrep {
       </div>
       <div class="dda-vocab-actions">
         <span class="dda-vocab-count-badge">${badgeText}</span>
-        <span class="dda-vocab-toggle-icon">↗</span>
+        <span class="dda-vocab-toggle-icon">${ICONS ? ICONS.externalLink(12) : '↗'}</span>
       </div>
     `;
 
@@ -835,20 +837,20 @@ class VocabPrep {
       <div class="dda-vocab-popover-header" title="Drag to move panel">
         <div class="dda-vocab-header-top">
           <div class="dda-vocab-header-title">
-            <span class="dda-vocab-drag-handle" title="Drag to move">⠿</span>
-            <span>📖 Lesson Vocabulary</span>
+            <span class="dda-vocab-drag-handle" title="Drag to move">${ICONS ? ICONS.grip(14) : '⠿'}</span>
+            <span>${ICONS ? ICONS.book(14) : '📖'} Lesson Vocabulary</span>
           </div>
           <div class="dda-vocab-header-controls">
-            <button type="button" class="dda-popover-pin-btn ${this.isPinned ? 'active pinned' : ''}" title="${this.isPinned ? 'Unpin panel' : 'Pin panel (keep open)'}">📌</button>
-            <button type="button" class="dda-popover-close-btn" title="Close (Esc)">✖</button>
+            <button type="button" class="dda-popover-pin-btn ${this.isPinned ? 'active pinned' : ''}" title="${this.isPinned ? 'Unpin panel' : 'Pin panel (keep open)'}">${ICONS ? ICONS.pin(13) : '📌'}</button>
+            <button type="button" class="dda-popover-close-btn" title="Close (Esc)">${ICONS ? ICONS.close(12) : '✖'}</button>
           </div>
         </div>
         <div class="dda-vocab-tabs">
           <button type="button" class="dda-vocab-tab-btn ${this.activeTab === 'key' ? 'active' : ''}" data-tab="key" title="Key and advanced vocabulary">
-            ⭐ Key Vocab <span class="dda-vocab-tab-count">${keyWords.length}</span>
+            ${ICONS ? ICONS.star(true, 13) : '⭐'} Key Vocab <span class="dda-vocab-tab-count">${keyWords.length}</span>
           </button>
           <button type="button" class="dda-vocab-tab-btn ${this.activeTab === 'all' ? 'active' : ''}" data-tab="all" title="All content words">
-            📋 All Words <span class="dda-vocab-tab-count">${allWords.length}</span>
+            ${ICONS ? ICONS.clipboard(13) : '📋'} All Words <span class="dda-vocab-tab-count">${allWords.length}</span>
           </button>
         </div>
         <div class="dda-vocab-pos-filters" style="${this.activeTab === 'all' ? 'display: flex;' : 'display: none;'}"></div>
@@ -865,11 +867,11 @@ class VocabPrep {
               <button type="button" class="dda-dict-btn ${this.currentProvider === 'vocabulary' ? 'active' : ''}" data-dict="vocabulary" title="Lookup on Vocabulary.com">Vocabulary</button>
             </div>
           </div>
-          ${!hasExt ? `<span class="dda-vocab-ext-promo">✨ Want instant popup? <a href="#" class="dda-ext-promo-link" onclick="event.preventDefault();">Get Vocabulary Extension</a></span>` : `<span class="dda-vocab-ext-active-hint">✨ Instant popup enabled</span>`}
+          ${!hasExt ? `<span class="dda-vocab-ext-promo">${ICONS ? ICONS.sparkles(12) : ''} Want instant popup? <a href="#" class="dda-ext-promo-link" onclick="event.preventDefault();">Get Vocabulary Extension</a></span>` : `<span class="dda-vocab-ext-active-hint">${ICONS ? ICONS.sparkles(12) : ''} Instant popup enabled</span>`}
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <small class="dda-esc-hint">Press <strong>Esc</strong></small>
-          <span class="dda-resize-handle-icon" title="Drag to resize">◢</span>
+          <span class="dda-resize-handle-icon" title="Drag to resize">${ICONS ? ICONS.resizeCorner(10) : '◢'}</span>
         </div>
       </div>
     `;

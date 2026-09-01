@@ -23,6 +23,7 @@
       "matches": ["*://*.dailydictation.com/*"],
       "css": ["styles/content.css"],
       "js": [
+        "scripts/icons.js",
         "scripts/audio-control.js",
         "scripts/vocab-prep.js",
         "scripts/diff-engine.js",

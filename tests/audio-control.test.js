@@ -47,10 +47,21 @@ describe('AudioControl', () => {
     const initialized = audioCtrl.init();
     expect(initialized).toBe(true);
 
+    const widgetGroup = document.querySelector('.dda-speed-widget-group');
+    expect(widgetGroup).not.toBeNull();
+
+    const prevBtn = document.querySelector('.dda-speed-prev-btn');
+    const nextBtn = document.querySelector('.dda-speed-next-btn');
+    const quickResetBtn = document.querySelector('.dda-speed-quick-reset');
+    expect(prevBtn).not.toBeNull();
+    expect(nextBtn).not.toBeNull();
+    expect(quickResetBtn).not.toBeNull();
+    expect(quickResetBtn.style.display).toBe('none');
+
     const pill = document.querySelector('.dda-speed-pill');
     expect(pill).not.toBeNull();
     expect(pill.textContent).toContain('1.0x');
-    expect(pill.textContent).toContain('⚡');
+    expect(pill.textContent).not.toContain('⚡');
 
     const popover = document.querySelector('.dda-speed-popover');
     expect(popover).not.toBeNull();
@@ -62,15 +73,31 @@ describe('AudioControl', () => {
     const pill = document.querySelector('.dda-speed-pill');
     const popover = document.querySelector('.dda-speed-popover');
 
-    // Click to open
+    // Click pill to open
     pill.click();
     expect(popover.style.display).toBe('block');
     expect(audioCtrl.isOpen).toBe(true);
 
-    // Click to close
+    // Click pill to close
     pill.click();
     expect(popover.style.display).toBe('none');
     expect(audioCtrl.isOpen).toBe(false);
+  });
+
+  test('shows quick-reset button when speed is non-default, and clicking it resets to default', () => {
+    audioCtrl.init();
+    const quickResetBtn = document.querySelector('.dda-speed-quick-reset');
+    expect(quickResetBtn.style.display).toBe('none');
+
+    // Change speed to 0.75x
+    audioCtrl.setSpeed(0.75);
+    expect(quickResetBtn.style.display).toBe('inline-flex');
+
+    // Click quick reset button
+    quickResetBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(1.0);
+    expect(audioEl.playbackRate).toBe(1.0);
+    expect(quickResetBtn.style.display).toBe('none');
   });
 
   test('closes popover on click outside', () => {
@@ -116,14 +143,16 @@ describe('AudioControl', () => {
 
     expect(audioEl.playbackRate).toBe(0.75);
     expect(global.chrome.storage.local.set).toHaveBeenCalledWith(expect.objectContaining({ playbackSpeed: 0.75 }));
-    expect(btn075.classList.contains('dda-preset-active')).toBe(true);
+
+    const presetItem = btn075.closest('.dda-speed-preset-item');
+    expect(presetItem.classList.contains('dda-preset-active')).toBe(true);
 
     const pill = document.querySelector('.dda-speed-pill');
     expect(pill.textContent).toContain('0.75x');
     expect(pill.classList.contains('dda-speed-active')).toBe(true);
   });
 
-  test('resets speed to 1.0x on reset button click and double click on pill', () => {
+  test('resets speed to defaultSpeed on reset button click and double click on pill', () => {
     audioCtrl.init();
     audioCtrl.setSpeed(1.25);
     expect(audioEl.playbackRate).toBe(1.25);
@@ -301,5 +330,134 @@ describe('AudioControl', () => {
     newAudioEl.dispatchEvent(new Event('play'));
     expect(newAudioEl.playbackRate).toBe(1.25);
   });
+
+  test('navigates presets using prevBtn and nextBtn', () => {
+    audioCtrl.init();
+    expect(audioCtrl.currentSpeed).toBe(1.0);
+
+    const prevBtn = document.querySelector('.dda-speed-prev-btn');
+    const nextBtn = document.querySelector('.dda-speed-next-btn');
+
+    // From 1.0 -> next preset should be 1.15
+    nextBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(1.15);
+    expect(audioEl.playbackRate).toBe(1.15);
+
+    // Next again -> 1.25
+    nextBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(1.25);
+
+    // Prev -> 1.15
+    prevBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(1.15);
+
+    // Prev -> 1.0
+    prevBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(1.0);
+
+    // Prev -> 0.85
+    prevBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(0.85);
+
+    // Prev -> 0.75
+    prevBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(0.75);
+
+    // Prev from min preset wraps to max preset (1.5)
+    prevBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(1.5);
+
+    // Next from max preset wraps to min preset (0.75)
+    nextBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(0.75);
+  });
+
+  test('adjusts speed by 0.05x using fine tuning stepper buttons', () => {
+    audioCtrl.init();
+    audioCtrl.setSpeed(1.0);
+
+    const stepDownBtn = document.querySelector('.dda-speed-step-down');
+    const stepUpBtn = document.querySelector('.dda-speed-step-up');
+
+    expect(stepDownBtn).not.toBeNull();
+    expect(stepUpBtn).not.toBeNull();
+
+    // Step down
+    stepDownBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(0.95);
+    expect(audioEl.playbackRate).toBe(0.95);
+
+    // Step up
+    stepUpBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(1.0);
+    expect(audioEl.playbackRate).toBe(1.0);
+
+    // Step up again
+    stepUpBtn.click();
+    expect(audioCtrl.currentSpeed).toBe(1.05);
+    expect(audioEl.playbackRate).toBe(1.05);
+  });
+
+  test('sets and persists default speed when star button is clicked on a quick preset', () => {
+    audioCtrl.init();
+    expect(audioCtrl.defaultSpeed).toBe(1.0);
+
+    const starBtns = document.querySelectorAll('.dda-preset-star-btn');
+    expect(starBtns.length).toBe(6);
+
+    // Find star for 0.85x preset
+    const presetItems = document.querySelectorAll('.dda-speed-preset-item');
+    const item085 = Array.from(presetItems).find(el => el.textContent.includes('0.85x'));
+    expect(item085).not.toBeNull();
+
+    const star085 = item085.querySelector('.dda-preset-star-btn');
+    star085.click();
+
+    expect(audioCtrl.defaultSpeed).toBe(0.85);
+    expect(global.chrome.storage.local.set).toHaveBeenCalledWith(expect.objectContaining({ defaultSpeed: 0.85 }));
+
+    // Reset button in header reflects default speed
+    const resetBtn = document.querySelector('.dda-speed-reset-btn');
+    expect(resetBtn.textContent).toContain('0.85x');
+
+    // Change speed to 1.5x then double-click pill to reset to default (0.85x)
+    audioCtrl.setSpeed(1.5);
+    const pill = document.querySelector('.dda-speed-pill');
+    pill.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    expect(audioCtrl.currentSpeed).toBe(0.85);
+    expect(audioEl.playbackRate).toBe(0.85);
+  });
+
+  test('adjusts custom preset slot values using slot stepper buttons', () => {
+    audioCtrl.init();
+    const toggle = document.querySelector('.dda-speed-config-toggle');
+    toggle.click();
+
+    const slotRows = document.querySelectorAll('.dda-preset-slot-row');
+    const firstRow = slotRows[0];
+    const stepDown = firstRow.querySelector('.dda-slot-step-down');
+    const stepUp = firstRow.querySelector('.dda-slot-step-up');
+    const badge = firstRow.querySelector('.dda-preset-slot-badge');
+
+    expect(stepDown).not.toBeNull();
+    expect(stepUp).not.toBeNull();
+    expect(badge.textContent).toBe('0.75x');
+
+    // Step down
+    stepDown.click();
+    expect(audioCtrl.presets[0]).toBe(0.7);
+
+    // Step up
+    stepUp.click();
+    expect(audioCtrl.presets[0]).toBe(0.75);
+
+    stepUp.click();
+    expect(audioCtrl.presets[0]).toBe(0.8);
+    expect(global.chrome.storage.local.set).toHaveBeenCalledWith(expect.objectContaining({
+      speedPresets: expect.arrayContaining([0.8])
+    }));
+  });
 });
+
+
 

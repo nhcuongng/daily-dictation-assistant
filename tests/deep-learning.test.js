@@ -103,7 +103,8 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
   test('starts at subtle level, transitions to warning after 3 errors, fire after 6 errors, and resets for new challenge', () => {
     expect(loop.getPeekLevel()).toBe('subtle');
     expect(loop.peekBtn.classList.contains('dda-level-subtle')).toBe(true);
-    expect(loop.peekBtn.textContent).toContain('👁️ Peek Transcript');
+    expect(loop.peekBtn.textContent).toContain('Peek Transcript');
+    expect(loop.peekBtn.querySelector('svg')).not.toBeNull();
     expect(loop.peekBtn.title.length).toBeGreaterThan(0);
     let bar = loop.peekBtn.querySelector('.dda-peek-progress-bar');
     expect(bar).not.toBeNull();
@@ -114,7 +115,8 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
     loop.updatePeekButton();
     expect(loop.getPeekLevel(0)).toBe('warning');
     expect(loop.peekBtn.classList.contains('dda-level-warning')).toBe(true);
-    expect(loop.peekBtn.textContent).toContain('💡 Peek Hint');
+    expect(loop.peekBtn.textContent).toContain('Peek Hint');
+    expect(loop.peekBtn.querySelector('svg')).not.toBeNull();
     expect(loop.peekBtn.textContent).not.toContain('(3/6)');
     expect(loop.peekBtn.title.length).toBeGreaterThan(0);
     bar = loop.peekBtn.querySelector('.dda-peek-progress-bar');
@@ -125,7 +127,8 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
     loop.updatePeekButton();
     expect(loop.getPeekLevel(0)).toBe('fire');
     expect(loop.peekBtn.classList.contains('dda-level-fire')).toBe(true);
-    expect(loop.peekBtn.textContent).toContain('🔥 Peek Rescue');
+    expect(loop.peekBtn.textContent).toContain('Peek Rescue');
+    expect(loop.peekBtn.querySelector('svg')).not.toBeNull();
     expect(loop.peekBtn.textContent).not.toContain('(6/6)');
     expect(loop.peekBtn.title.length).toBeGreaterThan(0);
     bar = loop.peekBtn.querySelector('.dda-peek-progress-bar');
@@ -468,4 +471,43 @@ describe('DeepLearningLoop - Real-time Challenge & Active Audio Detection', () =
     expect(words[0].textContent).toBe('Sentence');
     expect(words[1].textContent).toBe('2.');
   });
+
+  test('clears WhatIfSound text and syncs audio speed on challenge change', () => {
+    window.WhatIfSound = {
+      isPlaying: true,
+      stop: jest.fn(),
+      clearText: jest.fn()
+    };
+    window.ddaAudioControl = {
+      syncPlaybackRate: jest.fn()
+    };
+
+    const script = document.createElement('script');
+    script.textContent = `
+      window.appGlobals = {
+        "challenges": [
+          { "position": 1, "content": "Sentence 1.", "audioSrc": "https://dailydictation.com/upload/1.mp3" },
+          { "position": 2, "content": "Sentence 2.", "audioSrc": "https://dailydictation.com/upload/2.mp3" }
+        ]
+      };
+    `;
+    document.body.appendChild(script);
+
+    const audio = document.createElement('audio');
+    audio.src = 'https://dailydictation.com/upload/1.mp3';
+    document.body.appendChild(audio);
+
+    loop.checkCurrentChallengeChange();
+
+    audio.src = 'https://dailydictation.com/upload/2.mp3';
+    loop.checkCurrentChallengeChange();
+
+    expect(window.WhatIfSound.stop).toHaveBeenCalled();
+    expect(window.WhatIfSound.clearText).toHaveBeenCalledWith(false);
+    expect(window.ddaAudioControl.syncPlaybackRate).toHaveBeenCalled();
+
+    delete window.WhatIfSound;
+    delete window.ddaAudioControl;
+  });
 });
+

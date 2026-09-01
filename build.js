@@ -40,6 +40,7 @@ async function build() {
   const buildOptions = {
     entryPoints: [
       'scripts/background.js',
+      'scripts/icons.js',
       'scripts/audio-control.js',
       'scripts/vocab-prep.js',
       'scripts/diff-engine.js',

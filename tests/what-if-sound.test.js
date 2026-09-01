@@ -167,4 +167,18 @@ describe('WhatIfSound Component', () => {
 
     expect(whatIf.inputEl.value).toBe('');
   });
+
+  test('should clear text and stop playback when clearText(false) is invoked on sentence change', () => {
+    whatIf.render(container);
+    whatIf.setText('pronounce this');
+    whatIf.isPlaying = true;
+    const focusSpy = jest.spyOn(whatIf.inputEl, 'focus');
+
+    whatIf.clearText(false);
+
+    expect(whatIf.inputEl.value).toBe('');
+    expect(whatIf.isPlaying).toBe(false);
+    expect(focusSpy).not.toHaveBeenCalled();
+  });
 });
+

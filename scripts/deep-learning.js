@@ -1,3 +1,5 @@
+const ICONS = typeof DDA_ICONS !== 'undefined' ? DDA_ICONS : (typeof require !== 'undefined' ? require('./icons.js') : null);
+
 class DeepLearningLoop {
   constructor() {
     this.wrongAttemptsByChallenge = {};
@@ -8,22 +10,22 @@ class DeepLearningLoop {
 
     this.peekTips = {
       subtle: [
-        '👁️ Peek Transcript',
-        '👁️ Take a peek if stuck',
-        '👁️ Need a hint? Peek here',
-        '👁️ Peek the answer'
+        'Peek Transcript',
+        'Take a peek if stuck',
+        'Need a hint? Peek here',
+        'Peek the answer'
       ],
       warning: [
-        '💡 Peek Hint',
-        '💡 Struggling? Peek to get unstuck',
-        '💡 3rd try — take a peek at the sentence',
-        '💡 Still tricky? Tap here for a hint'
+        'Peek Hint',
+        'Struggling? Peek to get unstuck',
+        '3rd try — take a peek at the sentence',
+        'Still tricky? Tap here for a hint'
       ],
       fire: [
-        '🔥 Peek Rescue',
-        '🔥 Don\'t give up — peek and learn',
-        '🔥 6+ tries — check the transcript here',
-        '🔥 Tough audio! Peek to move on'
+        'Peek Rescue',
+        'Don\'t give up — peek and learn',
+        '6+ tries — check the transcript here',
+        'Tough audio! Peek to move on'
       ]
     };
   }
@@ -74,8 +76,11 @@ class DeepLearningLoop {
       if (this.isTranscriptPopoverOpen()) {
         this.openTranscriptPopover();
       }
-      if (window.WhatIfSound && window.WhatIfSound.isPlaying) {
-        window.WhatIfSound.stop();
+      if (window.WhatIfSound) {
+        if (window.WhatIfSound.isPlaying) {
+          window.WhatIfSound.stop();
+        }
+        window.WhatIfSound.clearText(false);
       }
       if (window.ddaAudioControl) {
         window.ddaAudioControl.syncPlaybackRate();
@@ -183,10 +188,17 @@ class DeepLearningLoop {
     const label = tips[0];
     const tip = tips[Math.floor(Math.random() * tips.length)];
 
+    const levelIcons = {
+      subtle: ICONS ? ICONS.eye(13) : '',
+      warning: ICONS ? ICONS.lightbulb(13) : '',
+      fire: ICONS ? ICONS.flame(13) : ''
+    };
+    const iconHtml = levelIcons[level] || '';
+
     peekBtn.title = tip;
     peekBtn.innerHTML = `
       <div class="dda-peek-progress-bar" style="width: ${progressPercent}%;"></div>
-      <span>${label}</span>
+      <span class="dda-peek-btn-content">${iconHtml}<span>${label}</span></span>
     `;
   }
 
@@ -425,14 +437,14 @@ class DeepLearningLoop {
     popover.innerHTML = `
       <div class="dda-transcript-popover-header">
         <div class="dda-popover-header-left">
-          <span class="dda-drag-handle" title="Drag to move">⠿</span>
-          <div class="dda-popover-title">🎯 Sentence #${currentIndex + 1}${challenges.length > 0 ? ` of ${challenges.length}` : ''}</div>
+          <span class="dda-drag-handle" title="Drag to move">${ICONS ? ICONS.grip(14) : '⠿'}</span>
+          <div class="dda-popover-title">${ICONS ? ICONS.target(13) : '🎯'} Sentence #${currentIndex + 1}${challenges.length > 0 ? ` of ${challenges.length}` : ''}</div>
         </div>
         <div class="dda-transcript-tabs-nav">
-          <button class="dda-popover-pin-btn ${this.isTranscriptPinned ? 'active' : ''}" title="${this.isTranscriptPinned ? 'Unpin window' : 'Pin window'}">📌</button>
-          <button class="dda-transcript-tab-btn active" data-tab="current" title="Current Sentence">🎯 Sentence</button>
-          <button class="dda-transcript-tab-btn" data-tab="full" title="Full Transcript">📜 Full</button>
-          <button class="dda-popover-close-btn" title="Close (Esc)">✖</button>
+          <button class="dda-popover-pin-btn ${this.isTranscriptPinned ? 'active' : ''}" title="${this.isTranscriptPinned ? 'Unpin window' : 'Pin window'}">${ICONS ? ICONS.pin(13) : '📌'}</button>
+          <button class="dda-transcript-tab-btn active" data-tab="current" title="Current Sentence">${ICONS ? ICONS.target(12) : '🎯'} Sentence</button>
+          <button class="dda-transcript-tab-btn" data-tab="full" title="Full Transcript">${ICONS ? ICONS.fileText(12) : '📜'} Full</button>
+          <button class="dda-popover-close-btn" title="Close (Esc)">${ICONS ? ICONS.close(12) : '✖'}</button>
         </div>
       </div>
       <div class="dda-transcript-body">
@@ -454,10 +466,10 @@ class DeepLearningLoop {
         </div>
       </div>
       <div class="dda-transcript-popover-footer">
-        <span>💡 Click any blurred word to reveal</span>
+        <span>${ICONS ? ICONS.lightbulb(12) : ''} Click any blurred word to reveal</span>
         <div style="display: flex; align-items: center; gap: 8px;">
           <small>Press <strong>Esc</strong></small>
-          <span class="dda-resize-handle-icon" title="Drag to resize">◢</span>
+          <span class="dda-resize-handle-icon" title="Drag to resize">${ICONS ? ICONS.resizeCorner(10) : '◢'}</span>
         </div>
       </div>
     `;

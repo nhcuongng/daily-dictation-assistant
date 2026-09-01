@@ -218,6 +218,13 @@ body[data-bs-theme="dark"] {
 /* ==========================================================================
    Speed Control (Compact Pill & Presets Popover)
    ========================================================================== */
+/* Global SVG Icon helper */
+.dda-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
 .dda-speed-control-wrapper {
   position: relative;
   display: inline-flex;
@@ -227,58 +234,130 @@ body[data-bs-theme="dark"] {
   z-index: 100;
 }
 
-.dda-speed-pill {
+.dda-speed-widget-group {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  height: 36px;
-  box-sizing: border-box;
   background: var(--dda-bg-subtle);
   border: 1px solid var(--dda-border-strong);
   border-radius: 20px;
+  box-shadow: var(--dda-shadow-sm);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.dda-speed-widget-group:hover {
+  border-color: var(--dda-accent-primary);
+  box-shadow: var(--dda-shadow-md);
+}
+
+.dda-speed-widget-group.dda-speed-active {
+  background: var(--dda-accent-subtle);
+  border-color: var(--dda-accent-border);
+}
+
+.dda-speed-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--dda-text-muted);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.dda-speed-nav-btn:hover {
+  background: var(--dda-bg-hover);
+  color: var(--dda-text-primary);
+}
+
+.dda-speed-widget-group.dda-speed-active .dda-speed-nav-btn {
+  color: var(--dda-accent-text);
+}
+
+.dda-speed-widget-group.dda-speed-active .dda-speed-nav-btn:hover {
+  background: var(--dda-accent-subtle-hover);
+  color: var(--dda-accent-primary);
+}
+
+.dda-speed-nav-btn:active {
+  transform: scale(0.92);
+}
+
+.dda-speed-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  height: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--dda-border);
+  border-right: 1px solid var(--dda-border);
   font-size: 13px;
   font-weight: 600;
   color: var(--dda-text-secondary);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--dda-shadow-sm);
   user-select: none;
 }
 
-.dda-speed-pill:hover,
-.dda-speed-pill.dda-popover-open {
-  background: var(--dda-bg-hover);
-  border-color: var(--dda-accent-primary);
-  color: var(--dda-text-primary);
-  box-shadow: var(--dda-shadow-md);
-  transform: translateY(-1px);
+.dda-speed-quick-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--dda-accent-text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1;
+  border-right: 1px solid var(--dda-accent-border);
 }
 
-.dda-speed-pill.dda-speed-active {
-  background: var(--dda-accent-subtle);
-  border-color: var(--dda-accent-border);
+.dda-speed-quick-reset:hover {
+  background: var(--dda-accent-subtle-hover);
+  color: var(--dda-accent-primary);
+}
+
+.dda-speed-quick-reset:active {
+  transform: scale(0.92);
+}
+
+.dda-speed-widget-group.dda-speed-active .dda-speed-pill {
+  border-left-color: var(--dda-accent-border);
+  border-right-color: var(--dda-accent-border);
   color: var(--dda-accent-text);
 }
 
-.dda-speed-pill .dda-speed-icon {
-  font-size: 13px;
-  line-height: 1;
+.dda-speed-pill:hover {
+  background: var(--dda-bg-hover);
+  color: var(--dda-text-primary);
+}
+
+.dda-speed-widget-group.dda-speed-active .dda-speed-pill:hover {
+  background: var(--dda-accent-subtle-hover);
 }
 
 .dda-speed-pill .dda-speed-value {
   font-weight: 700;
   letter-spacing: 0.2px;
-}
-
-.dda-speed-pill .dda-speed-chevron {
-  font-size: 10px;
-  opacity: 0.7;
-  transition: transform 0.2s ease;
-}
-
-.dda-speed-pill.dda-popover-open .dda-speed-chevron {
-  transform: rotate(180deg);
 }
 
 /* Speed Popover Container */
@@ -364,32 +443,86 @@ body[data-bs-theme="dark"] {
   gap: 6px;
 }
 
-.dda-speed-preset-btn {
+.dda-speed-preset-item {
+  display: flex;
+  align-items: center;
   background: var(--dda-bg-subtle);
   border: 1px solid var(--dda-border);
   border-radius: 8px;
-  padding: 6px 4px;
-  font-size: 12.5px;
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+
+.dda-speed-preset-item:hover {
+  border-color: var(--dda-border-strong);
+  background: var(--dda-bg-hover);
+}
+
+.dda-speed-preset-item.dda-preset-active {
+  background: var(--dda-accent-primary);
+  border-color: var(--dda-accent-primary);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.dda-speed-preset-item.dda-preset-is-default {
+  border-color: #f59e0b;
+}
+
+.dda-speed-preset-item .dda-speed-preset-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 6px 0 6px 6px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--dda-text-secondary);
   cursor: pointer;
   text-align: center;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease;
   user-select: none;
 }
 
-.dda-speed-preset-btn:hover {
-  background: var(--dda-bg-hover);
-  color: var(--dda-text-primary);
-  border-color: var(--dda-border-strong);
+.dda-speed-preset-item.dda-preset-active .dda-speed-preset-btn {
+  color: #ffffff;
+  font-weight: 700;
 }
 
-.dda-speed-preset-btn.dda-preset-active {
-  background: var(--dda-accent-primary);
-  color: #ffffff;
-  border-color: var(--dda-accent-primary);
-  font-weight: 700;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+.dda-preset-star-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 100%;
+  padding: 0 4px 0 0;
+  border: none;
+  background: transparent;
+  color: var(--dda-text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+  opacity: 0.5;
+  user-select: none;
+}
+
+.dda-speed-preset-item:hover .dda-preset-star-btn,
+.dda-preset-star-btn:hover {
+  opacity: 1;
+  color: #f59e0b;
+}
+
+.dda-preset-star-btn.dda-star-active {
+  opacity: 1;
+  color: #f59e0b;
+  font-size: 14px;
+}
+
+.dda-speed-preset-item.dda-preset-active .dda-preset-star-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dda-speed-preset-item.dda-preset-active .dda-preset-star-btn.dda-star-active {
+  color: #fbbf24;
 }
 
 /* Slider Fine Tuning */
@@ -415,6 +548,36 @@ body[data-bs-theme="dark"] {
   font-size: 11px;
   font-weight: 500;
   color: var(--dda-text-muted);
+}
+
+.dda-speed-stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--dda-border-strong);
+  border-radius: 6px;
+  background: var(--dda-bg-surface);
+  color: var(--dda-text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1;
+}
+
+.dda-speed-stepper-btn:hover {
+  background: var(--dda-accent-subtle);
+  border-color: var(--dda-accent-border);
+  color: var(--dda-accent-primary);
+  transform: scale(1.06);
+}
+
+.dda-speed-stepper-btn:active {
+  transform: scale(0.94);
 }
 
 .dda-speed-slider-input {
@@ -457,8 +620,20 @@ body[data-bs-theme="dark"] {
   color: var(--dda-text-primary);
 }
 
+.dda-config-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .dda-config-toggle-arrow {
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.dda-speed-config-toggle.expanded .dda-config-toggle-arrow {
+  transform: rotate(180deg);
 }
 
 .dda-speed-config-panel {
@@ -502,6 +677,36 @@ body[data-bs-theme="dark"] {
   font-weight: 700;
   color: var(--dda-text-muted);
   min-width: 18px;
+}
+
+.dda-slot-stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--dda-border-strong);
+  border-radius: 4px;
+  background: var(--dda-bg-surface);
+  color: var(--dda-text-primary);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.dda-slot-stepper-btn:hover {
+  background: var(--dda-accent-subtle);
+  border-color: var(--dda-accent-border);
+  color: var(--dda-accent-primary);
+  transform: scale(1.08);
+}
+
+.dda-slot-stepper-btn:active {
+  transform: scale(0.92);
 }
 
 .dda-preset-slot-slider {
@@ -633,6 +838,13 @@ body[data-bs-theme="dark"] {
   justify-content: center;
   text-align: center;
   box-sizing: border-box;
+}
+
+.dda-peek-btn-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 }
 
 .dda-peek-progress-bar {
