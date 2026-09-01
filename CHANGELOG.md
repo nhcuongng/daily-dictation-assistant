@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-09-01 (Zen Lifeline, Real-time Ghost Diff, Pinnable Peek & Resizable Popovers)
+
+### Added
+- **Zen Lifeline & Ghost-Diff Peek Engine (`DiffEngine.generateGhostDiff`)**:
+  - Re-architected Peek Transcript into an interactive learning lifeline.
+  - Words in the current sentence stream are presented with gentle CSS blur by default (`.dda-word-hidden`).
+  - Allows click-to-reveal on individual blurred words (`.dda-word-revealed`) without spoiling the whole sentence.
+- **Phonetic Clues Detection (`DiffEngine.detectPhoneticClues`)**:
+  - Automatically identifies connected speech (consonant-to-vowel linking), contractions, weak vowel forms, and flap-T sound patterns, embedded directly as helpful hover tooltips on words.
+- **Real-Time Keystroke Sync**:
+  - Popover actively synchronizes with the dictation `textarea` as the user types: correctly typed words unblur and turn green (`✓`) instantly, mistakes are underlined in wavy red, and remaining words stay blurred.
+- **Pinnable & Draggable Peek Popover**:
+  - Positioned to the right of the Peek button by default with collision bounds detection.
+  - Header drag handle (`⠿ Drag`) allows freely moving the popover anywhere on the screen.
+  - Pin button (`📌 Pin` / `📌 Pinned`) keeps the popover persistently on screen during typing and across challenges.
+- **Auto-Scroll in Full Transcript Tab**:
+  - Automatically centers the currently active sentence (`.dda-sentence-item.active`) when switching to the `📜 Full` transcript tab.
+- **Resizable Popovers (`resize: both`)**:
+  - Added 2D corner resizing for both the Peek Transcript popover and the Vocab Prep popover with visual corner indicators (`◢`).
+  - Flex-body responsive scrolling ensures smooth content adaptation.
+- **SPA Challenge Auto-Sync**:
+  - Continuous challenge detection across DailyDictation's React pagination buttons, arrow navigation, and audio changes.
+
+### Changed
+- Refined popover height limits (`min-height: 80px`, `max-height: min(56vh, 400px)` for Peek; `min-height: 135px`, `max-height: min(56vh, 460px)` for Vocab) for a more compact and distraction-free footprint.
+
+---
+
 ## [1.4.0] - 2026-08-31 (Pinnable, Draggable Vocab Panel & Left-Side Layout)
 
 ### Added

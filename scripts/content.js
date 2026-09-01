@@ -24,7 +24,12 @@ function startObserver() {
       el.style.opacity = '0';
     });
 
-    // If the UI is already rendered and still in the DOM, do nothing
+    // Always check for challenge changes in SPA
+    if (window.DeepLearningLoop) {
+      window.DeepLearningLoop.checkCurrentChallengeChange();
+    }
+
+    // If the UI is already rendered and still in the DOM, skip re-init of controls
     if (window.ddaAudioControl && document.querySelector('.dda-speed-control') && document.querySelector('.dda-actions-container')) {
       return;
     }

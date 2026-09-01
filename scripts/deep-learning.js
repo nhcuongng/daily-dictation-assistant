@@ -1,7 +1,10 @@
 class DeepLearningLoop {
   constructor() {
     this.wrongAttemptsByChallenge = {};
+    this.revealedWordsByChallenge = {};
     this.lastChallengeIndex = -1;
+    this.isTranscriptPinned = false;
+    this.customPopoverCoords = null;
 
     this.peekTips = {
       subtle: [
@@ -34,6 +37,33 @@ class DeepLearningLoop {
     }
 
     this.checkCurrentChallengeChange();
+
+    // Attach navigation click listeners to detect SPA challenge changes
+    if (!this._globalNavListenerAttached) {
+      this._globalNavListenerAttached = true;
+      document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target && (target.closest('#btn-arrow-left, #btn-arrow-right, .dropdown, #app-dictation, [class*="pagination"], [class*="challenge"], [id*="react-aria"]') || target.tagName === 'BUTTON')) {
+          setTimeout(() => {
+            this.checkCurrentChallengeChange();
+          }, 30);
+          setTimeout(() => {
+            this.checkCurrentChallengeChange();
+          }, 150);
+        }
+      });
+    }
+
+    // Attach audio change listeners
+    const audioEl = document.querySelector('audio');
+    if (audioEl && !this._audioListenersAttached) {
+      this._audioListenersAttached = true;
+      ['play', 'loadeddata', 'canplay', 'ended'].forEach(evt => {
+        audioEl.addEventListener(evt, () => {
+          this.checkCurrentChallengeChange();
+        });
+      });
+    }
   }
 
   checkCurrentChallengeChange() {
@@ -41,6 +71,9 @@ class DeepLearningLoop {
     if (currentIndex !== this.lastChallengeIndex) {
       this.lastChallengeIndex = currentIndex;
       this.updatePeekButton();
+      if (this.isTranscriptPopoverOpen()) {
+        this.openTranscriptPopover();
+      }
     }
   }
 
@@ -320,6 +353,38 @@ class DeepLearningLoop {
     return this.getTranscriptText();
   }
 
+  getRevealedWords(index = this.getCurrentChallengeIndex()) {
+    if (!this.revealedWordsByChallenge[index]) {
+      this.revealedWordsByChallenge[index] = new Set();
+    }
+    return this.revealedWordsByChallenge[index];
+  }
+
+  revealWord(wordIndex, index = this.getCurrentChallengeIndex()) {
+    const revealedSet = this.getRevealedWords(index);
+    revealedSet.add(wordIndex);
+    return revealedSet;
+  }
+
+  revealAllWords(totalWords, index = this.getCurrentChallengeIndex()) {
+    const revealedSet = this.getRevealedWords(index);
+    for (let i = 0; i < totalWords; i++) {
+      revealedSet.add(i);
+    }
+    return revealedSet;
+  }
+
+  revealNextWord(tokens, index = this.getCurrentChallengeIndex()) {
+    const revealedSet = this.getRevealedWords(index);
+    for (let i = 0; i < tokens.length; i++) {
+      if (tokens[i].status === 'hidden' || tokens[i].status === 'wrong') {
+        revealedSet.add(i);
+        break;
+      }
+    }
+    return revealedSet;
+  }
+
   toggleTranscriptPopover(container = this.actionsContainer, button = this.peekBtn) {
     if (this.isTranscriptPopoverOpen()) {
       this.closeTranscriptPopover();
@@ -329,28 +394,41 @@ class DeepLearningLoop {
   }
 
   openTranscriptPopover(container = this.actionsContainer, button = this.peekBtn) {
+    if (this.transcriptPopoverElement && document.body.contains(this.transcriptPopoverElement)) {
+      const r = this.transcriptPopoverElement.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        this.customPopoverCoords = { top: r.top, left: r.left };
+      }
+    }
     this.closeTranscriptPopover();
 
     const challenges = this.getChallenges();
     const currentIndex = this.getCurrentChallengeIndex();
     const currentSentence = challenges[currentIndex] || this.getTranscriptText() || 'Transcript not found.';
+    const textarea = document.querySelector('textarea');
+    const userText = textarea ? textarea.value : '';
 
     const popover = document.createElement('div');
-    popover.className = 'dda-transcript-popover';
+    popover.className = `dda-transcript-popover dda-zen-popover ${this.isTranscriptPinned ? 'dda-pinned' : ''}`;
 
     popover.innerHTML = `
       <div class="dda-transcript-popover-header">
-        <div class="dda-transcript-tabs-nav">
-          <button class="dda-transcript-tab-btn active" data-tab="current">🎯 Current Sentence</button>
-          <button class="dda-transcript-tab-btn" data-tab="full">📜 Full Transcript</button>
+        <div class="dda-popover-header-left">
+          <span class="dda-drag-handle" title="Drag to move">⠿</span>
+          <div class="dda-popover-title">🎯 Sentence #${currentIndex + 1}${challenges.length > 0 ? ` of ${challenges.length}` : ''}</div>
         </div>
-        <button class="dda-popover-close-btn" title="Close (Esc)">✖</button>
+        <div class="dda-transcript-tabs-nav">
+          <button class="dda-popover-pin-btn ${this.isTranscriptPinned ? 'active' : ''}" title="${this.isTranscriptPinned ? 'Unpin window' : 'Pin window'}">📌</button>
+          <button class="dda-transcript-tab-btn active" data-tab="current" title="Current Sentence">🎯 Sentence</button>
+          <button class="dda-transcript-tab-btn" data-tab="full" title="Full Transcript">📜 Full</button>
+          <button class="dda-popover-close-btn" title="Close (Esc)">✖</button>
+        </div>
       </div>
       <div class="dda-transcript-body">
         <div class="dda-tab-content-current">
           <div class="dda-current-sentence-box">
-            <div class="dda-challenge-index-tag">Challenge #${currentIndex + 1}${challenges.length > 0 ? ` of ${challenges.length}` : ''}</div>
-            <div>${currentSentence}</div>
+            <div class="dda-zen-sentence-stream"></div>
+            <div class="dda-ghost-sentence-ref" style="display:none;">${currentSentence}</div>
           </div>
         </div>
         <div class="dda-tab-content-full" style="display: none;">
@@ -365,10 +443,182 @@ class DeepLearningLoop {
         </div>
       </div>
       <div class="dda-transcript-popover-footer">
-        <span>💡 Use peek sparingly to maximize listening gains</span>
-        <small>Press <strong>Esc</strong></small>
+        <span>💡 Click any blurred word to reveal</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <small>Press <strong>Esc</strong></small>
+          <span class="dda-resize-handle-icon" title="Drag to resize">◢</span>
+        </div>
       </div>
     `;
+
+    // Calculate position: right of button by default
+    const popoverWidth = 440;
+    let top = 100;
+    let left = 100;
+
+    if (this.customPopoverCoords) {
+      top = this.customPopoverCoords.top;
+      left = this.customPopoverCoords.left;
+    } else {
+      const targetBtn = button || this.peekBtn || (container ? container.querySelector('.dda-btn-peek') : null);
+      if (targetBtn && typeof targetBtn.getBoundingClientRect === 'function') {
+        const rect = targetBtn.getBoundingClientRect();
+        left = rect.right + 12;
+        top = rect.top;
+
+        // Viewport boundaries
+        const vw = window.innerWidth || 1024;
+        const vh = window.innerHeight || 768;
+
+        if (left + popoverWidth > vw - 12) {
+          // If overflows right, try placing left of button or center
+          left = rect.left - popoverWidth - 12;
+          if (left < 12) {
+            left = Math.max(12, (vw - popoverWidth) / 2);
+          }
+        }
+        if (top + 280 > vh - 12) {
+          top = Math.max(12, vh - 300);
+        }
+        if (top < 12) top = 12;
+      }
+    }
+
+    popover.style.position = 'fixed';
+    popover.style.top = `${top}px`;
+    popover.style.left = `${left}px`;
+
+    // Render Zen Stream logic
+    const streamContainer = popover.querySelector('.dda-zen-sentence-stream');
+    const phoneticClues = (window.DiffEngine && typeof window.DiffEngine.detectPhoneticClues === 'function')
+      ? window.DiffEngine.detectPhoneticClues(currentSentence)
+      : [];
+
+    const getClueForWord = (word) => {
+      if (!phoneticClues || phoneticClues.length === 0) return null;
+      const clean = word.toLowerCase().replace(/[^\w']/g, '');
+      return phoneticClues.find(c => c.title.toLowerCase().includes(clean));
+    };
+
+    const renderZenView = () => {
+      const currentInput = textarea ? textarea.value : '';
+      const revealedSet = this.getRevealedWords(currentIndex);
+      const diffData = (window.DiffEngine && typeof window.DiffEngine.generateGhostDiff === 'function')
+        ? window.DiffEngine.generateGhostDiff(currentSentence, currentInput, revealedSet)
+        : { tokens: [] };
+
+      streamContainer.innerHTML = '';
+      diffData.tokens.forEach((token) => {
+        const clue = getClueForWord(token.truthWord);
+        const wordEl = document.createElement('span');
+        wordEl.className = `dda-zen-word dda-ghost-token dda-word-${token.status} dda-token-${token.status}`;
+        wordEl.setAttribute('data-index', token.index);
+
+        if (token.status === 'correct') {
+          wordEl.title = clue ? `✓ Correct • ${clue.badge}: ${clue.detail}` : '✓ Correct';
+          wordEl.textContent = token.truthWord;
+        } else if (token.status === 'wrong') {
+          wordEl.title = `Mistake (typed "${token.userWord || ''}"). Click to reveal`;
+          wordEl.textContent = token.status === 'revealed' ? token.truthWord : token.truthWord;
+          wordEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.revealWord(token.index, currentIndex);
+            renderZenView();
+          });
+        } else if (token.status === 'revealed') {
+          wordEl.title = clue ? `Revealed • ${clue.badge}: ${clue.detail}` : 'Revealed word';
+          wordEl.textContent = token.truthWord;
+        } else {
+          // Hidden / Blurred word
+          wordEl.title = clue ? `Click to reveal • ${clue.badge}: ${clue.detail}` : 'Click to reveal word';
+          wordEl.textContent = token.truthWord;
+          wordEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.revealWord(token.index, currentIndex);
+            renderZenView();
+          });
+        }
+
+        streamContainer.appendChild(wordEl);
+      });
+    };
+
+    renderZenView();
+
+    // Hook realtime keystroke sync
+    if (this._textareaInputHandler && this._monitoredTextarea) {
+      this._monitoredTextarea.removeEventListener('input', this._textareaInputHandler);
+    }
+    this._textareaInputHandler = () => {
+      if (this.isTranscriptPopoverOpen()) {
+        renderZenView();
+      }
+    };
+    this._monitoredTextarea = textarea;
+    if (textarea) {
+      textarea.addEventListener('input', this._textareaInputHandler);
+    }
+
+    // Draggable Header Handle
+    const header = popover.querySelector('.dda-transcript-popover-header');
+    header.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button')) return;
+      e.preventDefault();
+      header.classList.add('dda-dragging');
+
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const rect = popover.getBoundingClientRect();
+      const startLeft = rect.left;
+      const startTop = rect.top;
+
+      const onMouseMove = (moveEvent) => {
+        moveEvent.preventDefault();
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
+
+        let newLeft = startLeft + deltaX;
+        let newTop = startTop + deltaY;
+
+        const maxLeft = Math.max(0, (window.innerWidth || 1024) - popover.offsetWidth);
+        const maxTop = Math.max(0, (window.innerHeight || 768) - popover.offsetHeight);
+
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        newTop = Math.max(0, Math.min(newTop, maxTop));
+
+        popover.style.left = `${newLeft}px`;
+        popover.style.top = `${newTop}px`;
+      };
+
+      const onMouseUp = () => {
+        header.classList.remove('dda-dragging');
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+
+        const finalRect = popover.getBoundingClientRect();
+        this.customPopoverCoords = { top: finalRect.top, left: finalRect.left };
+      };
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+
+    // Pin Button
+    const pinBtn = popover.querySelector('.dda-popover-pin-btn');
+    pinBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.isTranscriptPinned = !this.isTranscriptPinned;
+      if (this.isTranscriptPinned) {
+        pinBtn.classList.add('active');
+        pinBtn.title = 'Unpin window';
+        popover.classList.add('dda-pinned');
+      } else {
+        pinBtn.classList.remove('active');
+        pinBtn.title = 'Pin window';
+        popover.classList.remove('dda-pinned');
+      }
+    });
 
     // Stop propagation inside popover
     popover.addEventListener('click', (e) => {
@@ -383,6 +633,7 @@ class DeepLearningLoop {
     tabBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         tabBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const tab = btn.getAttribute('data-tab');
@@ -392,6 +643,14 @@ class DeepLearningLoop {
         } else {
           currentContent.style.display = 'none';
           fullContent.style.display = 'block';
+
+          // Auto-scroll to active sentence in full list
+          setTimeout(() => {
+            const activeItem = fullContent.querySelector('.dda-sentence-item.active');
+            if (activeItem && typeof activeItem.scrollIntoView === 'function') {
+              activeItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+          }, 30);
         }
       });
     });
@@ -404,9 +663,10 @@ class DeepLearningLoop {
       this.closeTranscriptPopover();
     });
 
-    // Outside click
+    // Outside click (respect pin status)
     this._transcriptOutsideHandler = (e) => {
-      if (container && !container.contains(e.target)) {
+      if (this.isTranscriptPinned) return;
+      if (container && !container.contains(e.target) && !popover.contains(e.target)) {
         this.closeTranscriptPopover();
       }
     };
@@ -420,7 +680,7 @@ class DeepLearningLoop {
     };
     document.addEventListener('keydown', this._transcriptEscHandler);
 
-    container.appendChild(popover);
+    document.body.appendChild(popover);
     this.transcriptPopoverElement = popover;
     return popover;
   }
@@ -429,6 +689,11 @@ class DeepLearningLoop {
     if (this.transcriptPopoverElement) {
       this.transcriptPopoverElement.remove();
       this.transcriptPopoverElement = null;
+    }
+    if (this._textareaInputHandler && this._monitoredTextarea) {
+      this._monitoredTextarea.removeEventListener('input', this._textareaInputHandler);
+      this._textareaInputHandler = null;
+      this._monitoredTextarea = null;
     }
     if (this._transcriptOutsideHandler) {
       document.removeEventListener('click', this._transcriptOutsideHandler);

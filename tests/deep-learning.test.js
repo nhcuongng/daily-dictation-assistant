@@ -1,4 +1,6 @@
 const DeepLearningLoop = require('../scripts/deep-learning.js');
+const DiffEngine = require('../scripts/diff-engine.js');
+window.DiffEngine = DiffEngine;
 
 describe('DeepLearningLoop - getTranscriptText', () => {
   let loop;
@@ -173,6 +175,120 @@ describe('DeepLearningLoop - Progressive Peek & Transcript Popover', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape' }));
     expect(loop.isTranscriptPopoverOpen()).toBe(false);
   });
+
+  test('renders zen sentence stream with blurred words and allows click-to-reveal', () => {
+    // Current sentence is "Sentence 1."
+    textarea.value = 'Sentence';
+    loop.peekBtn.click();
+
+    const popover = document.querySelector('.dda-transcript-popover');
+    expect(popover).not.toBeNull();
+
+    // Check words in stream
+    const words = popover.querySelectorAll('.dda-zen-word');
+    expect(words.length).toBe(2);
+    expect(words[0].classList.contains('dda-word-correct')).toBe(true);
+    expect(words[0].textContent).toBe('Sentence');
+    expect(words[1].classList.contains('dda-word-hidden')).toBe(true);
+
+    // Click hidden blurred word to reveal
+    words[1].click();
+    const updatedWords = popover.querySelectorAll('.dda-zen-word');
+    expect(updatedWords[1].classList.contains('dda-word-revealed')).toBe(true);
+    expect(updatedWords[1].textContent).toBe('1.');
+  });
+
+  test('supports pinning popover so it remains open on outside clicks', () => {
+    loop.peekBtn.click();
+    expect(loop.isTranscriptPopoverOpen()).toBe(true);
+
+    const pinBtn = document.querySelector('.dda-popover-pin-btn');
+    expect(pinBtn).not.toBeNull();
+    expect(loop.isTranscriptPinned).toBe(false);
+
+    // Pin the popover
+    pinBtn.click();
+    expect(loop.isTranscriptPinned).toBe(true);
+    expect(pinBtn.classList.contains('active')).toBe(true);
+
+    // Click outside -> should NOT close because it is pinned
+    document.body.click();
+    expect(loop.isTranscriptPopoverOpen()).toBe(true);
+
+    // Unpin
+    pinBtn.click();
+    expect(loop.isTranscriptPinned).toBe(false);
+    expect(pinBtn.classList.contains('active')).toBe(false);
+
+    // Click outside -> should close now
+    document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(loop.isTranscriptPopoverOpen()).toBe(false);
+  });
+
+  test('supports dragging popover by its header handle', () => {
+    loop.peekBtn.click();
+    const popover = document.querySelector('.dda-transcript-popover');
+    const header = popover.querySelector('.dda-transcript-popover-header');
+
+    // Simulate drag start
+    header.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 100, clientY: 100 }));
+    expect(header.classList.contains('dda-dragging')).toBe(true);
+
+    // Simulate drag move
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 150, clientY: 180 }));
+    expect(popover.style.left).toBeDefined();
+
+    // Simulate drag end
+    document.dispatchEvent(new MouseEvent('mouseup', { clientX: 150, clientY: 180 }));
+    expect(header.classList.contains('dda-dragging')).toBe(false);
+    expect(loop.customPopoverCoords).not.toBeNull();
+  });
+
+  test('scrolls to active sentence when full tab is selected', (done) => {
+    loop.peekBtn.click();
+    const popover = document.querySelector('.dda-transcript-popover');
+    const fullTabBtn = popover.querySelector('.dda-transcript-tab-btn[data-tab="full"]');
+
+    const activeItem = popover.querySelector('.dda-full-transcript-list .dda-sentence-item.active');
+    activeItem.scrollIntoView = jest.fn();
+
+    fullTabBtn.click();
+
+    setTimeout(() => {
+      expect(activeItem.scrollIntoView).toHaveBeenCalledWith({ block: 'center', behavior: 'smooth' });
+      done();
+    }, 60);
+  });
+
+  test('synchronizes sentence words in real-time as user types into textarea', () => {
+    // Start with empty input and open popover
+    textarea.value = '';
+    loop.peekBtn.click();
+
+    const popover = document.querySelector('.dda-transcript-popover');
+    expect(popover).not.toBeNull();
+
+    let words = popover.querySelectorAll('.dda-zen-word');
+    expect(words[0].classList.contains('dda-word-hidden')).toBe(true);
+    expect(words[1].classList.contains('dda-word-hidden')).toBe(true);
+
+    // User types "Sentence" into textarea
+    textarea.value = 'Sentence';
+    textarea.dispatchEvent(new Event('input'));
+
+    words = popover.querySelectorAll('.dda-zen-word');
+    expect(words[0].classList.contains('dda-word-correct')).toBe(true);
+    expect(words[0].textContent).toBe('Sentence');
+    expect(words[1].classList.contains('dda-word-hidden')).toBe(true);
+
+    // User types full sentence "Sentence 1."
+    textarea.value = 'Sentence 1.';
+    textarea.dispatchEvent(new Event('input'));
+
+    words = popover.querySelectorAll('.dda-zen-word');
+    expect(words[0].classList.contains('dda-word-correct')).toBe(true);
+    expect(words[1].classList.contains('dda-word-correct')).toBe(true);
+  });
 });
 
 describe('DeepLearningLoop - Real-time Challenge & Active Audio Detection', () => {
@@ -180,6 +296,7 @@ describe('DeepLearningLoop - Real-time Challenge & Active Audio Detection', () =
 
   beforeEach(() => {
     document.body.innerHTML = '';
+    window.DiffEngine = DiffEngine;
     loop = new DeepLearningLoop();
   });
 
@@ -313,5 +430,42 @@ describe('DeepLearningLoop - Real-time Challenge & Active Audio Detection', () =
     expect(result2).not.toBeNull();
     expect(result2.isCorrect).toBe(true);
     expect(loop.getWrongAttemptsCount(0)).toBe(0);
+  });
+
+  test('automatically updates open popover content when challenge changes', () => {
+    const script = document.createElement('script');
+    script.textContent = `
+      window.appGlobals = {
+        "challenges": [
+          { "position": 1, "content": "Sentence 1.", "audioSrc": "https://dailydictation.com/upload/1.mp3" },
+          { "position": 2, "content": "Sentence 2.", "audioSrc": "https://dailydictation.com/upload/2.mp3" }
+        ]
+      };
+    `;
+    document.body.appendChild(script);
+
+    const audio = document.createElement('audio');
+    audio.src = 'https://dailydictation.com/upload/1.mp3';
+    document.body.appendChild(audio);
+
+    const textarea = document.createElement('textarea');
+    document.body.appendChild(textarea);
+    loop.renderActions(textarea);
+
+    // Open popover for challenge 1
+    loop.peekBtn.click();
+    expect(loop.isTranscriptPopoverOpen()).toBe(true);
+    let titleEl = document.querySelector('.dda-popover-title');
+    expect(titleEl.textContent).toContain('Sentence #1');
+
+    // Simulate audio changing to challenge 2
+    audio.src = 'https://dailydictation.com/upload/2.mp3';
+    loop.checkCurrentChallengeChange();
+
+    titleEl = document.querySelector('.dda-popover-title');
+    expect(titleEl.textContent).toContain('Sentence #2');
+    const words = document.querySelectorAll('.dda-zen-word');
+    expect(words[0].textContent).toBe('Sentence');
+    expect(words[1].textContent).toBe('2.');
   });
 });

@@ -793,7 +793,10 @@ class VocabPrep {
           </div>
           ${!hasExt ? `<span class="dda-vocab-ext-promo">✨ Want instant popup? <a href="#" class="dda-ext-promo-link" onclick="event.preventDefault();">Get Vocabulary Extension</a></span>` : `<span class="dda-vocab-ext-active-hint">✨ Instant popup enabled</span>`}
         </div>
-        <small class="dda-esc-hint">Press <strong>Esc</strong></small>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <small class="dda-esc-hint">Press <strong>Esc</strong></small>
+          <span class="dda-resize-handle-icon" title="Drag to resize">◢</span>
+        </div>
       </div>
     `;
 
