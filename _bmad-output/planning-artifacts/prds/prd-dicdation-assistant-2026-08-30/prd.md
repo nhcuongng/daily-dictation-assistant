@@ -70,12 +70,29 @@ Một tiện ích mở rộng (Chrome Extension) giúp loại bỏ hoàn toàn "
 - **Clear Text & Pin Button**: Đã loại bỏ hoàn toàn theo phản hồi người dùng để giữ giao diện tối giản.
 - **Check Errors (Diff Button)**: Tạm hoãn (Deferred) đưa ra khỏi UI ở Phase 2, chỉ giữ cơ chế đếm lỗi khi nộp bài trên DailyDictation.
 
-### 4.4 Motivation & Tracking: Động lực và Thống kê (Phase 3 - Upcoming ⏳)
-- **FR-7**: Theo dõi thời gian học và thống kê lỗi sai hàng ngày.
-- **FR-8**: Đặt mục tiêu hàng ngày (Daily Target) và thanh tiến độ.
-- **FR-9**: Báo cáo chuỗi ngày học liên tục (Streak Tracking).
+### 4.4 In-Progress Lessons Tracker & Smart State Recovery (Phase 3 - Ready for Dev 🚀)
+- **FR-7: Tự động lưu tiến độ & Trạng thái bài học (In-Progress State Auto-Save)**:
+  - Tự động ghi nhớ `lessonId`, tiêu đề bài, câu đang làm dở, tổng số câu, thời gian cập nhật.
+  - **Draft Text Auto-Save**: Tự động lưu nội dung đang gõ dở trong textarea (với debounce 500ms).
+  - **Audio Position Bookmark**: Lưu lại vị trí giây audio đang dừng để tiếp tục liền mạch.
+- **FR-8: Chrome Toolbar Action Popup & Badge Counter**:
+  - Badge trên toolbar icon hiển thị số lượng bài đang học dở.
+  - Popup dropdown (100% English UI) hiển thị danh sách bài dở dang kèm Progress Bar, Snippet nội dung gõ dở và thời gian học gần nhất.
+  - Hỗ trợ nút **Resume** (tiếp tục học) và nút **Dismiss** (xoá bài dở).
+- **FR-9: Tự động phục hồi ngữ cảnh (Smart Resume & Auto-Recovery)**:
+  - Khi mở lại bài từ Popup, tự động chuyển đến câu dở dang, điền lại text đang gõ dở, tua audio đến đúng thời điểm đã dừng và focus vào textarea.
+  - Tự động xóa bài học khỏi danh sách khi hoàn thành 100% câu cuối cùng.
+- **FR-10: Đồng bộ đa thiết bị (Cross-Device Chrome Sync)**:
+  - Đồng bộ trạng thái học tập qua `chrome.storage.sync` (fallback `local`).
+  - Giải quyết xung đột theo nguyên tắc Last-Write-Wins.
+
+### 4.5 Motivation & Analytics: Động lực và Thống kê (Phase 4 - Backlog ⏳)
+- **FR-11**: Theo dõi thời gian học và thống kê lỗi sai hàng ngày.
+- **FR-12**: Đặt mục tiêu hàng ngày (Daily Target) và thanh tiến độ.
+- **FR-13**: Báo cáo chuỗi ngày học liên tục (Streak Tracking).
 
 ## 5. Non-Goals (Explicit)
 - Không thay thế UI gốc của dailydictation.com.
-- Không có backend phức tạp trong V1 (lưu trữ hoàn toàn tại Local Storage).
+- Không xây dựng backend/database riêng (sử dụng tối đa `chrome.storage.sync` & `chrome.storage.local`).
 - Miễn phí 100% trên Chrome Web Store.
+
