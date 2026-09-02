@@ -231,7 +231,7 @@ class AudioControl {
     this.quickResetBtn.className = 'dda-speed-quick-reset';
     this.quickResetBtn.setAttribute('aria-label', 'Reset to default speed');
     this.quickResetBtn.setAttribute('title', `Reset to default (${this.formatSpeed(this.defaultSpeed)})`);
-    this.quickResetBtn.innerHTML = ICONS ? ICONS.reset(13) : '↺';
+    this.quickResetBtn.innerHTML = ICONS ? ICONS.reset(9) : '↺';
     this.quickResetBtn.style.display = 'none';
     this.quickResetBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -252,9 +252,9 @@ class AudioControl {
 
     this.widgetGroup.appendChild(this.prevBtn);
     this.widgetGroup.appendChild(this.speedValBtn);
-    this.widgetGroup.appendChild(this.quickResetBtn);
     this.widgetGroup.appendChild(this.nextBtn);
     this.container.appendChild(this.widgetGroup);
+    this.container.appendChild(this.quickResetBtn);
 
     this.updatePillContent();
 

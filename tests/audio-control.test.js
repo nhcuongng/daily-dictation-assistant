@@ -63,6 +63,13 @@ describe('AudioControl', () => {
     expect(pill.textContent).toContain('1.0x');
     expect(pill.textContent).not.toContain('⚡');
 
+    // Verify widgetGroup ordering: prevBtn -> speedValBtn (pill) -> nextBtn
+    expect(Array.from(widgetGroup.children)).toEqual([prevBtn, pill, nextBtn]);
+
+    // quickResetBtn is a floating badge inside container
+    const container = document.querySelector('.dda-speed-control');
+    expect(container.contains(quickResetBtn)).toBe(true);
+
     const popover = document.querySelector('.dda-speed-popover');
     expect(popover).not.toBeNull();
     expect(popover.style.display).toBe('none');

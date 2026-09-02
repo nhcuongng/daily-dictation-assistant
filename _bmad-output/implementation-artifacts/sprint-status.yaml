@@ -1,0 +1,56 @@
+# Sprint Status — dicdation-assistant
+# generated: 09-01-2026 15:24
+# last_updated: 09-01-2026 15:24
+# NOTE: Generated manually (ruamel.yaml unavailable); format matches sprint-status-template.yaml spec.
+
+generated: 09-01-2026 15:24
+last_updated: 09-01-2026 15:24
+project: dicdation-assistant
+project_key: NOKEY
+tracking_system: file-system
+story_location: "_bmad-output/implementation-artifacts"
+
+# STATUS DEFINITIONS:
+# Epic Status:  backlog | in-progress | done
+# Story Status: backlog | ready-for-dev | in-progress | review | done
+# Retro Status: optional | done
+
+development_status:
+
+  # ─── Epic 1: Audio Controls & Rapid Speed Switching ───────────────────────
+  epic-1: backlog
+  1-1-speed-slider-integration: backlog
+  1-2-playback-speed-presets-cycle-hotkey-and-hud-toast: backlog
+  epic-1-retrospective: optional
+
+  # ─── Epic 2: Vocabulary Panel — Search & Exploration ──────────────────────
+  epic-2: backlog
+  2-1-vocab-prep-floating-popover: backlog
+  2-2-vocab-panel-live-search-and-category-filter: backlog
+  epic-2-retrospective: optional
+
+  # ─── Epic 3: Smart Feedback, Progressive Transcript & Context Image Search ─
+  epic-3: backlog
+  3-1-progressive-peek-transcript-3-tier-rescue: backlog
+  3-2-clean-typing-area-remove-default-highlight-overlay: backlog
+  3-3-enforce-100-percent-english-ui-standard: backlog
+  3-4-context-image-search-via-wikimedia-commons: backlog
+  epic-3-retrospective: optional
+
+  # ─── Epic 4: In-Progress Lessons Tracker & Smart State Recovery ───────────
+  epic-4: backlog
+  4-1-in-progress-state-and-draft-text-auto-save: backlog
+  4-2-chrome-toolbar-popup-and-badge-counter: backlog
+  4-3-smart-resume-and-context-auto-recovery: backlog
+  4-4-cross-device-chrome-storage-sync: backlog
+  epic-4-retrospective: optional
+
+  # ─── Epic 5: Study Habit Motivation & Draggable Focus Timer ───────────────
+  epic-5: backlog
+  5-1-study-time-tracking-and-daily-statistics: backlog
+  5-2-draggable-floating-study-timer-with-milestone-effects-and-toggle: backlog
+  5-3-daily-streak-tracking: backlog
+  5-4-daily-30-minute-target-and-progress-indicator: backlog
+  epic-5-retrospective: optional
+
+action_items: []
