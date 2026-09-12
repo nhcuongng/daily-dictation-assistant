@@ -772,4 +772,233 @@ describe('VocabPrep', () => {
     expect(popover.style.left).toBe('80px');
     expect(popover.style.top).toBe('200px');
   });
+
+  describe('Smart Search & Scope Toggle', () => {
+    test('defaults scope mode to "current" and persists to localStorage', () => {
+      expect(prep.scopeMode).toBe('current');
+      prep.scopeMode = 'full';
+      prep.persistSettings();
+      expect(localStorage.getItem('dda_vocab_scope_mode')).toBe('full');
+
+      const freshPrep = new VocabPrep();
+      expect(freshPrep.scopeMode).toBe('full');
+    });
+
+    test('extracts vocabulary according to active scope (Current Sentence vs Full Story)', () => {
+      const fullStory = 'The extraordinary architect designed a magnificent museum. Then the happy family visited the park.';
+      const currentSentence = 'The extraordinary architect designed a magnificent museum.';
+      
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      
+      prep.scopeMode = 'current';
+      prep.renderPanel(fullStory, container, { currentSentence });
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      expect(popover).not.toBeNull();
+      
+      // In current sentence, key words should be 'architect', 'extraordinary', 'magnificent', 'museum'
+      const wordChips = Array.from(popover.querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(wordChips).toContain('architect');
+      expect(wordChips).toContain('extraordinary');
+      expect(wordChips).toContain('magnificent');
+      expect(wordChips).toContain('museum');
+      expect(wordChips).not.toContain('visited'); // 'visited' is in sentence 2
+    });
+
+    test('toggles scope between Current and Full and updates words list and storage', () => {
+      const fullStory = 'The extraordinary architect designed a magnificent museum. Then the curious astronaut explored Mars.';
+      const currentSentence = 'The extraordinary architect designed a magnificent museum.';
+      
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      
+      prep.scopeMode = 'current';
+      prep.renderPanel(fullStory, container, { currentSentence });
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const currentBtn = popover.querySelector('.dda-vocab-scope-btn[data-scope="current"]');
+      const fullBtn = popover.querySelector('.dda-vocab-scope-btn[data-scope="full"]');
+
+      expect(currentBtn.classList.contains('active')).toBe(true);
+      expect(fullBtn.classList.contains('active')).toBe(false);
+
+      // Click Full scope
+      fullBtn.click();
+
+      expect(prep.scopeMode).toBe('full');
+      expect(localStorage.getItem('dda_vocab_scope_mode')).toBe('full');
+      expect(fullBtn.classList.contains('active')).toBe(true);
+
+      const wordChips = Array.from(popover.querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(wordChips).toContain('architect');
+      expect(wordChips).toContain('astronaut');
+      expect(wordChips).toContain('curious');
+      expect(wordChips).toContain('explored');
+    });
+
+    test('filters words in real-time via live search input', () => {
+      const text = 'The extraordinary architect designed a magnificent museum and spectacular cathedral.';
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      
+      prep.scopeMode = 'full';
+      prep.renderPanel(text, container);
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const searchInput = popover.querySelector('.dda-vocab-search-input');
+      const searchClearBtn = popover.querySelector('.dda-vocab-search-clear');
+
+      expect(searchInput).not.toBeNull();
+      expect(searchClearBtn.classList.contains('visible')).toBe(false);
+
+      // Type search query 'arch'
+      searchInput.value = 'arch';
+      searchInput.dispatchEvent(new Event('input'));
+
+      expect(prep.searchQuery).toBe('arch');
+      expect(searchClearBtn.classList.contains('visible')).toBe(true);
+
+      const visibleChips = Array.from(popover.querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(visibleChips).toEqual(['architect']);
+    });
+
+    test('clears search input and restores words list when clicking clear button', () => {
+      const text = 'The extraordinary architect designed a magnificent museum.';
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      
+      prep.scopeMode = 'full';
+      prep.renderPanel(text, container);
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const searchInput = popover.querySelector('.dda-vocab-search-input');
+      const searchClearBtn = popover.querySelector('.dda-vocab-search-clear');
+
+      searchInput.value = 'extra';
+      searchInput.dispatchEvent(new Event('input'));
+      expect(popover.querySelectorAll('.dda-vocab-word').length).toBe(1);
+
+      // Click clear button
+      searchClearBtn.click();
+
+      expect(prep.searchQuery).toBe('');
+      expect(searchInput.value).toBe('');
+      expect(searchClearBtn.classList.contains('visible')).toBe(false);
+      expect(popover.querySelectorAll('.dda-vocab-word').length).toBe(5);
+    });
+
+    test('handles Escape key: first clears search text, second closes popover', () => {
+      const text = 'The extraordinary architect designed a magnificent museum.';
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      
+      prep.renderPanel(text, container);
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const searchInput = popover.querySelector('.dda-vocab-search-input');
+
+      searchInput.value = 'museum';
+      searchInput.dispatchEvent(new Event('input'));
+      expect(prep.searchQuery).toBe('museum');
+
+      // First Escape: clear search query
+      const esc1 = new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true });
+      searchInput.dispatchEvent(esc1);
+
+      expect(prep.searchQuery).toBe('');
+      expect(searchInput.value).toBe('');
+      expect(prep.isPopupOpen()).toBe(true);
+
+      // Second Escape: close popover
+      const esc2 = new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true });
+      document.dispatchEvent(esc2);
+
+      expect(prep.isPopupOpen()).toBe(false);
+    });
+
+    test('auto-clears search query and updates words on SPA challenge change', () => {
+      const fullStory = 'Sentence 1 has extraordinary architect. Sentence 2 has brilliant mathematician.';
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      
+      prep.scopeMode = 'current';
+      prep.customCurrentSentence = 'Sentence 1 has extraordinary architect.';
+      prep.renderPanel(fullStory, container);
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const searchInput = popover.querySelector('.dda-vocab-search-input');
+      searchInput.value = 'extra';
+      searchInput.dispatchEvent(new Event('input'));
+      expect(prep.searchQuery).toBe('extra');
+
+      // Navigate to challenge 2
+      prep.customCurrentSentence = 'Sentence 2 has brilliant mathematician.';
+      prep.onChallengeChange(1);
+
+      expect(prep.searchQuery).toBe('');
+      expect(searchInput.value).toBe('');
+      
+      const wordChips = Array.from(popover.querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(wordChips).toContain('brilliant');
+      expect(wordChips).toContain('mathematician');
+      expect(wordChips).not.toContain('architect');
+    });
+
+    test('renders friendly empty state when searching non-existent word', () => {
+      const text = 'The extraordinary architect designed a magnificent museum.';
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      
+      prep.renderPanel(text, container);
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const searchInput = popover.querySelector('.dda-vocab-search-input');
+
+      searchInput.value = 'supercalifragilistic';
+      searchInput.dispatchEvent(new Event('input'));
+
+      const emptyNotice = popover.querySelector('.dda-vocab-empty-notice');
+      expect(emptyNotice).not.toBeNull();
+      expect(emptyNotice.textContent).toContain('No matching words for "supercalifragilistic"');
+    });
+
+    test('renders friendly familiar notice and show all words button when current sentence has only basic words', () => {
+      const fullStory = 'They are in the school and going to the room. The architect designed the museum.';
+      const basicSentence = 'They are in the school and going to the room.';
+      
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      
+      prep.scopeMode = 'current';
+      prep.renderPanel(fullStory, container, { currentSentence: basicSentence });
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const familiarNotice = popover.querySelector('.dda-vocab-familiar-notice');
+      
+      expect(familiarNotice).not.toBeNull();
+      expect(familiarNotice.textContent).toContain('All familiar words in this sentence');
+      
+      const showBasicBtn = popover.querySelector('.dda-vocab-show-basic-btn');
+      expect(showBasicBtn).not.toBeNull();
+      expect(showBasicBtn.textContent).toContain('Show all words');
+
+      // Click show basic words button
+      showBasicBtn.click();
+
+      expect(prep.activeTab).toBe('all');
+      const wordChips = Array.from(popover.querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(wordChips).toContain('going');
+      expect(wordChips).toContain('school');
+      expect(wordChips).toContain('room');
+    });
+  });
 });

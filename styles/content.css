@@ -1373,6 +1373,120 @@ body[data-bs-theme="dark"] {
   transform: rotate(-25deg);
 }
 
+/* Vocab Filter Toolbar: Search + Scope Segmented Switch */
+.dda-vocab-filter-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.dda-vocab-search-box {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.dda-vocab-search-icon {
+  position: absolute;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--dda-text-muted);
+  pointer-events: none;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.dda-vocab-search-input {
+  width: 100%;
+  height: 28px;
+  padding: 4px 26px 4px 28px;
+  background: var(--dda-bg-surface);
+  border: 1px solid var(--dda-border);
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--dda-text-primary);
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.dda-vocab-search-input:focus {
+  border-color: var(--dda-accent-primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.dda-vocab-search-input::placeholder {
+  color: var(--dda-text-muted);
+  opacity: 0.7;
+}
+
+.dda-vocab-search-clear {
+  position: absolute;
+  right: 6px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 2px;
+  font-size: 10px;
+  color: var(--dda-text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.dda-vocab-search-clear.visible {
+  display: inline-flex;
+}
+
+.dda-vocab-search-clear:hover {
+  color: var(--dda-text-primary);
+  background: var(--dda-bg-hover);
+}
+
+.dda-vocab-scope-group {
+  display: inline-flex;
+  background: var(--dda-border);
+  padding: 2px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.dda-vocab-scope-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--dda-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.dda-vocab-scope-btn:hover {
+  color: var(--dda-text-primary);
+  background: var(--dda-bg-hover);
+}
+
+.dda-vocab-scope-btn.active {
+  background: var(--dda-bg-surface);
+  color: var(--dda-accent-primary);
+  font-weight: 600;
+  box-shadow: var(--dda-shadow-sm);
+}
+
 /* Vocab Popover 2-Tab Switcher */
 .dda-vocab-tabs {
   display: flex;
@@ -1472,6 +1586,57 @@ body[data-bs-theme="dark"] {
   color: var(--dda-text-muted);
   font-style: italic;
   padding: 8px 4px;
+}
+
+.dda-vocab-empty-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 10px;
+  text-align: center;
+  width: 100%;
+  gap: 4px;
+}
+
+.dda-vocab-familiar-notice {
+  background: var(--dda-accent-subtle);
+  border: 1px dashed var(--dda-accent-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 4px 0;
+}
+
+.dda-vocab-empty-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dda-accent-primary);
+}
+
+.dda-vocab-empty-subtitle {
+  font-size: 11.5px;
+  color: var(--dda-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.dda-vocab-show-basic-btn {
+  margin-top: 6px;
+  background: var(--dda-bg-surface);
+  border: 1px solid var(--dda-border);
+  color: var(--dda-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dda-vocab-show-basic-btn:hover {
+  background: var(--dda-bg-hover);
+  color: var(--dda-text-primary);
+  border-color: var(--dda-border-focus);
 }
 
 .dda-vocab-popover-body {

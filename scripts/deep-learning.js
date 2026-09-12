@@ -85,6 +85,9 @@ class DeepLearningLoop {
       if (window.ddaAudioControl) {
         window.ddaAudioControl.syncPlaybackRate();
       }
+      if (window.VocabPrep && typeof window.VocabPrep.onChallengeChange === 'function') {
+        window.VocabPrep.onChallengeChange(currentIndex);
+      }
     }
   }
 
