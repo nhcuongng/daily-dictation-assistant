@@ -85,6 +85,13 @@ class DeepLearningLoop {
       if (window.ddaAudioControl) {
         window.ddaAudioControl.syncPlaybackRate();
       }
+      if (window.VocabPrep && typeof window.VocabPrep.onChallengeChange === 'function') {
+        window.VocabPrep.onChallengeChange(currentIndex);
+      }
+      if (window.VoiceRecorder && typeof window.VoiceRecorder.onChallengeChange === 'function') {
+        const curSentence = this.getCurrentSentence() || '';
+        window.VoiceRecorder.onChallengeChange(currentIndex, curSentence);
+      }
     }
   }
 
@@ -124,6 +131,12 @@ class DeepLearningLoop {
     // Render What If Sound component just below actions toolbar (above textarea)
     if (window.WhatIfSound && textarea.parentNode) {
       window.WhatIfSound.render(textarea.parentNode, textarea);
+    }
+
+    // Render Voice Recorder component just below actions toolbar (above textarea)
+    if (window.VoiceRecorder && textarea.parentNode) {
+      window.VoiceRecorder.render(textarea.parentNode, textarea);
+      window.VoiceRecorder.onChallengeChange(this.getCurrentChallengeIndex(), this.getCurrentSentence() || '');
     }
 
     // Hotkeys & Enter key handling
@@ -663,7 +676,7 @@ class DeepLearningLoop {
         if (tab === 'current') {
           currentContent.style.display = 'block';
           fullContent.style.display = 'none';
-        } else {
+        } else if (tab === 'full') {
           currentContent.style.display = 'none';
           fullContent.style.display = 'block';
 

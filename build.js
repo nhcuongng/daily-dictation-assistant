@@ -46,6 +46,7 @@ async function build() {
       'scripts/diff-engine.js',
       'scripts/deep-learning.js',
       'scripts/what-if-sound.js',
+      'scripts/voice-recorder.js',
       'scripts/content.js'
     ],
     bundle: true, // Will bundle if there are imports, otherwise just transpile

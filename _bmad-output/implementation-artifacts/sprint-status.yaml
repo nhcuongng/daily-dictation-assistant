@@ -1,10 +1,10 @@
 # Sprint Status — dicdation-assistant
 # generated: 09-01-2026 15:24
-# last_updated: 09-01-2026 15:24
+# last_updated: 09-12-2026 15:35
 # NOTE: Generated manually (ruamel.yaml unavailable); format matches sprint-status-template.yaml spec.
 
 generated: 09-01-2026 15:24
-last_updated: 09-01-2026 15:24
+last_updated: 09-12-2026 15:35
 project: dicdation-assistant
 project_key: NOKEY
 tracking_system: file-system
@@ -18,39 +18,39 @@ story_location: "_bmad-output/implementation-artifacts"
 development_status:
 
   # ─── Epic 1: Audio Controls & Rapid Speed Switching ───────────────────────
-  epic-1: backlog
-  1-1-speed-slider-integration: backlog
-  1-2-playback-speed-presets-cycle-hotkey-and-hud-toast: backlog
-  epic-1-retrospective: optional
+  epic-1: done
+  1-1-speed-slider-integration: done
+  1-2-playback-speed-presets-cycle-hotkey-and-hud-toast: done
+  epic-1-retrospective: done
 
   # ─── Epic 2: Vocabulary Panel — Search & Exploration ──────────────────────
-  epic-2: backlog
-  2-1-vocab-prep-floating-popover: backlog
-  2-2-vocab-panel-live-search-and-category-filter: backlog
-  epic-2-retrospective: optional
+  epic-2: done
+  2-1-vocab-prep-floating-popover: done
+  2-2-vocab-panel-live-search-and-category-filter: done
+  epic-2-retrospective: done
 
   # ─── Epic 3: Smart Feedback, Progressive Transcript & Context Image Search ─
-  epic-3: backlog
-  3-1-progressive-peek-transcript-3-tier-rescue: backlog
-  3-2-clean-typing-area-remove-default-highlight-overlay: backlog
-  3-3-enforce-100-percent-english-ui-standard: backlog
-  3-4-context-image-search-via-wikimedia-commons: backlog
-  epic-3-retrospective: optional
+  epic-3: done
+  3-1-progressive-peek-transcript-3-tier-rescue: done
+  3-2-clean-typing-area-remove-default-highlight-overlay: done
+  3-3-enforce-100-percent-english-ui-standard: done
+  3-4-context-image-search-via-wikimedia-commons: deferred-to-vocab-extension
+  epic-3-retrospective: done
 
   # ─── Epic 4: In-Progress Lessons Tracker & Smart State Recovery ───────────
-  epic-4: backlog
-  4-1-in-progress-state-and-draft-text-auto-save: backlog
-  4-2-chrome-toolbar-popup-and-badge-counter: backlog
-  4-3-smart-resume-and-context-auto-recovery: backlog
-  4-4-cross-device-chrome-storage-sync: backlog
-  epic-4-retrospective: optional
+  epic-4: done
+  4-1-in-progress-state-and-draft-text-auto-save: done
+  4-2-chrome-toolbar-popup-and-badge-counter: done
+  4-3-smart-resume-and-context-auto-recovery: done
+  4-4-cross-device-chrome-storage-sync: done
+  epic-4-retrospective: done
 
   # ─── Epic 5: Study Habit Motivation & Draggable Focus Timer ───────────────
-  epic-5: backlog
-  5-1-study-time-tracking-and-daily-statistics: backlog
-  5-2-draggable-floating-study-timer-with-milestone-effects-and-toggle: backlog
-  5-3-daily-streak-tracking: backlog
-  5-4-daily-30-minute-target-and-progress-indicator: backlog
-  epic-5-retrospective: optional
+  epic-5: done
+  5-1-study-time-tracking-and-daily-statistics: done
+  5-2-draggable-floating-study-timer-with-milestone-effects-and-toggle: done
+  5-3-daily-streak-tracking: done
+  5-4-daily-30-minute-target-and-progress-indicator: done
+  epic-5-retrospective: done
 
 action_items: []
