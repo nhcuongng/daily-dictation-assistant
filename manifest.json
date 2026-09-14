@@ -18,6 +18,13 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
   "content_scripts": [
     {
       "matches": ["*://*.dailydictation.com/*"],
@@ -29,6 +36,7 @@
         "scripts/diff-engine.js",
         "scripts/deep-learning.js",
         "scripts/what-if-sound.js",
+        "scripts/voice-recorder.js",
         "scripts/content.js"
       ]
     }

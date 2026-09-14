@@ -1761,6 +1761,83 @@ body[data-bs-theme="dark"] {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  width: 100%;
+}
+
+/* Challenge Grouping in Full Scope */
+.dda-vocab-challenge-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  background: var(--dda-bg-surface);
+  border: 1px solid var(--dda-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 2px;
+  transition: all 0.2s ease;
+}
+
+.dda-vocab-challenge-group.active {
+  border-color: var(--dda-accent-primary);
+  background: rgba(37, 99, 235, 0.04);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+}
+
+.dda-vocab-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--dda-border);
+  user-select: none;
+}
+
+.dda-vocab-challenge-group.active .dda-vocab-group-header {
+  border-bottom-color: rgba(37, 99, 235, 0.2);
+}
+
+.dda-vocab-group-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dda-vocab-group-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--dda-accent-primary);
+}
+
+.dda-vocab-group-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--dda-text-primary);
+}
+
+.dda-vocab-current-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: var(--dda-accent-primary);
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.dda-vocab-group-count {
+  font-size: 10.5px;
+  color: var(--dda-text-muted);
+  font-weight: 500;
+}
+
+.dda-vocab-group-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .dda-vocab-word {
@@ -1931,6 +2008,115 @@ body[data-bs-theme="dark"] {
 }
 
 /* ==========================================================================
+   Draggable Floating Study Timer Widget (Epic 5)
+   ========================================================================== */
+.dda-study-timer-widget {
+  position: fixed;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--dda-bg-surface);
+  border: 1px solid var(--dda-border-strong);
+  padding: 6px 12px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: var(--dda-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: grab;
+  user-select: none;
+  z-index: 99998;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  font-variant-numeric: tabular-nums;
+}
+
+.dda-study-timer-widget:hover {
+  border-color: var(--dda-accent-primary);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
+}
+
+.dda-study-timer-widget.dda-dragging {
+  cursor: grabbing !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.dda-timer-drag-handle {
+  font-size: 11px;
+  opacity: 0.45;
+  letter-spacing: -1px;
+}
+
+.dda-timer-icon {
+  font-size: 13px;
+}
+
+.dda-timer-text {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.dda-timer-milestone-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 8px;
+  line-height: 1.3;
+}
+
+/* Milestone 10m (Warming up! - Blue glow) */
+.dda-study-timer-widget.dda-milestone-10 {
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.45);
+  animation: ddaTimerPulseBlue 2.5s infinite;
+}
+
+.dda-study-timer-widget.dda-milestone-10 .dda-timer-milestone-badge {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+}
+
+/* Milestone 20m (Getting there! - Amber glow) */
+.dda-study-timer-widget.dda-milestone-20 {
+  border-color: #f59e0b;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
+  animation: ddaTimerPulseAmber 2s infinite;
+}
+
+.dda-study-timer-widget.dda-milestone-20 .dda-timer-milestone-badge {
+  background: rgba(245, 158, 11, 0.18);
+  color: #d97706;
+}
+
+/* Milestone 30m (Goal reached! - Celebration green) */
+.dda-study-timer-widget.dda-milestone-30 {
+  border-color: #10b981;
+  background: linear-gradient(135deg, var(--dda-bg-surface), rgba(16, 185, 129, 0.1));
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.6);
+  animation: ddaTimerPulseGreen 1.8s infinite;
+}
+
+.dda-study-timer-widget.dda-milestone-30 .dda-timer-milestone-badge {
+  background: #10b981;
+  color: #ffffff;
+}
+
+@keyframes ddaTimerPulseBlue {
+  0%, 100% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(59, 130, 246, 0.6); }
+}
+
+@keyframes ddaTimerPulseAmber {
+  0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.35); }
+  50% { box-shadow: 0 0 18px rgba(245, 158, 11, 0.65); }
+}
+
+@keyframes ddaTimerPulseGreen {
+  0%, 100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 22px rgba(16, 185, 129, 0.75); }
+}
+
+/* ==========================================================================
    What If Sound? - Pronunciation Sandbox Component
    ========================================================================== */
 .dda-what-if-sound-container {
@@ -2090,6 +2276,250 @@ body[data-bs-theme="dark"] {
 }
 
 /* ==========================================================================
+   Voice Recorder Component (Shadowing & Practice - Minimal Compact)
+   ========================================================================== */
+.dda-voice-recorder-container {
+  margin-bottom: 8px;
+  padding: 5px 8px;
+  background: var(--dda-bg-subtle);
+  border: 1px solid var(--dda-border);
+  border-radius: 8px;
+  box-shadow: var(--dda-shadow-sm);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  width: 100%;
+  position: relative;
+}
+
+.dda-voice-recorder-container.dda-is-recording {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.04);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.dda-voice-recorder-container.dda-has-recording {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.03);
+}
+
+.dda-vr-timer {
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  color: var(--dda-text-primary);
+  background: var(--dda-bg-card);
+  border: 1px solid var(--dda-border);
+  padding: 2px 7px;
+  border-radius: 5px;
+  line-height: 1.3;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dda-vr-action-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dda-btn-record,
+.dda-btn-stop-record,
+.dda-btn-play-record,
+.dda-btn-download,
+.dda-btn-copy {
+  height: 29px;
+  padding: 0 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--dda-shadow-sm);
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+.dda-btn-record {
+  background: var(--dda-accent-primary, #2563eb);
+  color: #ffffff;
+}
+
+.dda-btn-record:hover {
+  filter: brightness(1.1);
+  box-shadow: var(--dda-shadow-md);
+}
+
+.dda-btn-stop-record {
+  background: #ef4444;
+  color: #ffffff;
+  animation: ddaRecordPulse 1.2s infinite;
+}
+
+.dda-btn-stop-record:hover {
+  background: #dc2626;
+}
+
+.dda-btn-play-record {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.dda-btn-play-record:hover {
+  background: #059669;
+}
+
+.dda-btn-play-record.dda-playing {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+.dda-btn-download {
+  background: var(--dda-bg-surface);
+  color: var(--dda-text-primary);
+  border: 1px solid var(--dda-border-strong);
+}
+
+.dda-btn-download:hover {
+  background: var(--dda-bg-hover);
+  border-color: var(--dda-accent-primary);
+  color: var(--dda-accent-primary);
+}
+
+.dda-vr-toast {
+  position: absolute;
+  bottom: -28px;
+  left: 10px;
+  background: #1f2937;
+  color: #f9fafb;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.dda-vr-toast.dda-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Multi-Take Recordings List */
+.dda-vr-recordings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--dda-border);
+}
+
+.dda-vr-take-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--dda-bg-surface);
+  border: 1px solid var(--dda-border);
+  border-radius: 6px;
+  padding: 3px 6px 3px 8px;
+  transition: all 0.15s ease;
+}
+
+.dda-vr-take-item:hover {
+  border-color: var(--dda-border-strong);
+  background: var(--dda-bg-card);
+}
+
+.dda-vr-take-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dda-vr-take-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dda-text-primary);
+}
+
+.dda-vr-take-duration {
+  font-size: 10.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--dda-text-muted);
+}
+
+.dda-vr-take-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dda-btn-take-play,
+.dda-btn-take-download,
+.dda-btn-take-delete {
+  height: 24px;
+  padding: 0 7px;
+  font-size: 10.5px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid var(--dda-border);
+  background: var(--dda-bg-surface);
+  color: var(--dda-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.dda-btn-take-play:hover {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+}
+
+.dda-btn-take-play.dda-playing {
+  background: #f59e0b;
+  color: #ffffff;
+  border-color: #f59e0b;
+}
+
+.dda-btn-take-download:hover {
+  background: var(--dda-bg-hover);
+  color: var(--dda-accent-primary);
+  border-color: var(--dda-accent-primary);
+}
+
+.dda-btn-take-delete {
+  padding: 0 5px;
+  color: var(--dda-text-muted);
+}
+
+.dda-btn-take-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+@keyframes ddaRecordPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+  }
+}
+
+/* ==========================================================================
    Responsive Design & Mobile Adaptations
    ========================================================================== */
 @media (max-width: 560px) {
@@ -2111,5 +2541,15 @@ body[data-bs-theme="dark"] {
   .dda-what-if-btn-speak {
     justify-content: center;
   }
+  .dda-vr-action-row {
+    justify-content: stretch;
+  }
+  .dda-btn-record,
+  .dda-btn-stop-record,
+  .dda-btn-play-record {
+    flex: 1;
+  }
 }
+
+
 
