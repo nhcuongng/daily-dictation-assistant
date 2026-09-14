@@ -1001,4 +1001,186 @@ describe('VocabPrep', () => {
       expect(wordChips).toContain('room');
     });
   });
+
+  describe('Full Mode Challenge Categorization & Auto-Scroll', () => {
+    test('extracts and groups vocabulary correctly across multiple challenges', () => {
+      prep.customChallenges = [
+        'The extraordinary architect designed a magnificent museum.',
+        'Then the brilliant mathematician solved the complex puzzle.'
+      ];
+      prep.allStoryText = prep.customChallenges.join('\n');
+
+      const grouped = prep.getGroupedChallengesVocab();
+      expect(grouped.length).toBe(2);
+      expect(grouped[0].title).toBe('Challenge #1');
+      expect(grouped[0].keyWords).toContain('architect');
+      expect(grouped[0].keyWords).toContain('extraordinary');
+      expect(grouped[0].keyWords).toContain('magnificent');
+      expect(grouped[0].keyWords).toContain('museum');
+
+      expect(grouped[1].title).toBe('Challenge #2');
+      expect(grouped[1].keyWords).toContain('brilliant');
+      expect(grouped[1].keyWords).toContain('complex');
+      expect(grouped[1].keyWords).toContain('mathematician');
+      expect(grouped[1].keyWords).toContain('puzzle');
+    });
+
+    test('renders challenge groups in Full mode with headers and active challenge highlighted', () => {
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+
+      const challenges = [
+        'The extraordinary architect designed a magnificent museum.',
+        'Then the brilliant mathematician solved the complex puzzle.'
+      ];
+
+      prep.scopeMode = 'full';
+      prep.currentChallengeIndex = 1; // Second challenge is active
+      prep.renderPanel(challenges.join('\n'), container, { challenges });
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      expect(popover).not.toBeNull();
+
+      const groups = popover.querySelectorAll('.dda-vocab-challenge-group');
+      expect(groups.length).toBe(2);
+
+      // Check group 1
+      const group1Header = groups[0].querySelector('.dda-vocab-group-header');
+      expect(group1Header.textContent).toContain('Challenge #1');
+      expect(groups[0].classList.contains('active')).toBe(false);
+      expect(groups[0].querySelector('.dda-vocab-current-badge')).toBeNull();
+
+      const group1Words = Array.from(groups[0].querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(group1Words).toContain('architect');
+      expect(group1Words).toContain('magnificent');
+
+      // Check group 2 (Active)
+      const group2Header = groups[1].querySelector('.dda-vocab-group-header');
+      expect(group2Header.textContent).toContain('Challenge #2');
+      expect(groups[1].classList.contains('active')).toBe(true);
+      expect(groups[1].querySelector('.dda-vocab-current-badge')).not.toBeNull();
+      expect(groups[1].querySelector('.dda-vocab-current-badge').textContent).toBe('Current');
+
+      const group2Words = Array.from(groups[1].querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(group2Words).toContain('brilliant');
+      expect(group2Words).toContain('mathematician');
+    });
+
+    test('auto-scrolls to active challenge group in Full mode', (done) => {
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+
+      const challenges = [
+        'Sentence 1 with extraordinary architect.',
+        'Sentence 2 with magnificent sculpture.',
+        'Sentence 3 with brilliant mathematician.'
+      ];
+
+      prep.scopeMode = 'full';
+      prep.currentChallengeIndex = 2; // Third challenge is active
+      prep.renderPanel(challenges.join('\n'), container, { challenges });
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const activeGroup = popover.querySelector('.dda-vocab-challenge-group.active');
+      expect(activeGroup).not.toBeNull();
+      expect(activeGroup.getAttribute('data-challenge-index')).toBe('2');
+
+      const scrollSpy = jest.fn();
+      activeGroup.scrollIntoView = scrollSpy;
+
+      // Trigger scroll logic
+      prep.scrollToActiveChallenge();
+
+      setTimeout(() => {
+        expect(scrollSpy).toHaveBeenCalledWith({ block: 'nearest', behavior: 'smooth' });
+        done();
+      }, 70);
+    });
+
+    test('filters challenge groups during live search in Full mode', () => {
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+
+      const challenges = [
+        'The extraordinary architect designed a magnificent museum.',
+        'Then the brilliant mathematician solved the complex puzzle.'
+      ];
+
+      prep.scopeMode = 'full';
+      prep.renderPanel(challenges.join('\n'), container, { challenges });
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const searchInput = popover.querySelector('.dda-vocab-search-input');
+
+      // Search for word in Challenge 2 only
+      searchInput.value = 'mathem';
+      searchInput.dispatchEvent(new Event('input'));
+
+      const visibleGroups = popover.querySelectorAll('.dda-vocab-challenge-group');
+      expect(visibleGroups.length).toBe(1);
+      expect(visibleGroups[0].querySelector('.dda-vocab-group-header').textContent).toContain('Challenge #2');
+
+      const words = Array.from(visibleGroups[0].querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(words).toEqual(['mathematician']);
+    });
+
+    test('updates challenge groups when switching tabs and applying POS filters in Full mode', () => {
+      prep.saveWordPosToCache('extraordinary', 'adj');
+      prep.saveWordPosToCache('architect', 'n');
+      prep.saveWordPosToCache('mathematician', 'n');
+      prep.saveWordPosToCache('brilliant', 'adj');
+
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+
+      const challenges = [
+        'extraordinary architect',
+        'brilliant mathematician'
+      ];
+
+      prep.scopeMode = 'full';
+      prep.renderPanel(challenges.join('\n'), container, { challenges });
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const allTabBtn = popover.querySelector('.dda-vocab-tab-btn[data-tab="all"]');
+
+      // Switch to All Words
+      allTabBtn.click();
+      expect(allTabBtn.classList.contains('active')).toBe(true);
+
+      // Select Adj filter
+      const adjFilter = popover.querySelector('.dda-pos-filter-btn[data-filter="adj"]');
+      adjFilter.click();
+
+      const groups = popover.querySelectorAll('.dda-vocab-challenge-group');
+      expect(groups.length).toBe(2);
+
+      const g1Words = Array.from(groups[0].querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(g1Words).toEqual(['extraordinary']);
+
+      const g2Words = Array.from(groups[1].querySelectorAll('.dda-vocab-word')).map(el => el.getAttribute('data-word'));
+      expect(g2Words).toEqual(['brilliant']);
+    });
+
+    test('handles fallback to newline splitting when DeepLearningLoop or custom challenges are absent', () => {
+      const text = 'First challenge with magnificent architecture.\nSecond challenge with extraordinary astrophysics.';
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+
+      prep.customChallenges = null;
+      prep.scopeMode = 'full';
+      prep.renderPanel(text, container);
+      prep.openPopup();
+
+      const popover = document.querySelector('.dda-vocab-popover');
+      const groups = popover.querySelectorAll('.dda-vocab-challenge-group');
+      expect(groups.length).toBe(2);
+      expect(groups[0].querySelector('.dda-vocab-group-header').textContent).toContain('Challenge #1');
+      expect(groups[1].querySelector('.dda-vocab-group-header').textContent).toContain('Challenge #2');
+    });
+  });
 });
