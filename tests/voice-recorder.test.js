@@ -10,10 +10,11 @@ describe('VoiceRecorder & WAV Encoder', () => {
     jest.useFakeTimers();
 
     // Mock MediaStream
+    const mockTrack = { stop: jest.fn(), readyState: 'live' };
     mockMediaStream = {
-      getTracks: jest.fn().mockReturnValue([
-        { stop: jest.fn() }
-      ])
+      active: true,
+      getAudioTracks: jest.fn().mockReturnValue([mockTrack]),
+      getTracks: jest.fn().mockReturnValue([mockTrack])
     };
 
     // Mock MediaRecorder
@@ -151,7 +152,7 @@ describe('VoiceRecorder & WAV Encoder', () => {
   });
 
   describe('UI Rendering & Elements', () => {
-    test('renders compact container with record button and hidden list initially', () => {
+    test('renders compact container with record button, tip, and hidden list initially', () => {
       const parent = document.createElement('div');
       document.body.appendChild(parent);
 
@@ -162,6 +163,8 @@ describe('VoiceRecorder & WAV Encoder', () => {
       expect(recorder.recordBtn).not.toBeNull();
       expect(recorder.stopBtn).not.toBeNull();
       expect(recorder.listContainerEl).not.toBeNull();
+      expect(recorder.tipEl).not.toBeNull();
+      expect(recorder.tipEl.textContent).toContain('Tip: Speak loudly & slowly to shadow');
 
       // Check initial visibility in idle state
       expect(recorder.recordBtn.style.display).not.toBe('none');
@@ -215,7 +218,7 @@ describe('VoiceRecorder & WAV Encoder', () => {
       expect(recorder.isRecording).toBe(false);
     });
 
-    test('allows recording multiple takes without overwriting previous takes', async () => {
+    test('allows recording multiple takes with newest take placed first', async () => {
       const parent = document.createElement('div');
       document.body.appendChild(parent);
       recorder.render(parent);
@@ -240,9 +243,32 @@ describe('VoiceRecorder & WAV Encoder', () => {
       recorder.stopRecording();
 
       expect(recorder.recordings.length).toBe(2);
-      expect(recorder.recordings[1].takeNumber).toBe(2);
-      expect(recorder.recordings[1].duration).toBe(7);
-      expect(recorder.listContainerEl.querySelectorAll('.dda-vr-take-item').length).toBe(2);
+      // Newest take (Take 2) should be at index 0 (top of the list)
+      expect(recorder.recordings[0].takeNumber).toBe(2);
+      expect(recorder.recordings[0].duration).toBe(7);
+      expect(recorder.recordings[1].takeNumber).toBe(1);
+      expect(recorder.recordings[1].duration).toBe(4);
+
+      const items = recorder.listContainerEl.querySelectorAll('.dda-vr-take-item');
+      expect(items.length).toBe(2);
+      expect(items[0].querySelector('.dda-vr-take-badge').textContent).toContain('Take #2');
+      expect(items[1].querySelector('.dda-vr-take-badge').textContent).toContain('Take #1');
+
+      // Verify getUserMedia was called ONLY once because the warm stream was reused
+      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+    });
+
+    test('prewarms microphone stream on mouseenter without starting recording', async () => {
+      const parent = document.createElement('div');
+      document.body.appendChild(parent);
+      recorder.render(parent);
+
+      recorder.recordBtn.dispatchEvent(new Event('mouseenter'));
+      await Promise.resolve();
+
+      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+      expect(recorder.isRecording).toBe(false);
+      expect(recorder.stream).not.toBeNull();
     });
 
     test('handles microphone permission denial gracefully', async () => {

@@ -155,10 +155,57 @@ class VoiceRecorder {
   }
 
   /**
+   * Ensure audio MediaStream is ready and active
+   */
+  async ensureAudioStream() {
+    if (this.stream && this.stream.active) {
+      const tracks = this.stream.getAudioTracks();
+      if (tracks.length > 0 && tracks.some(t => t.readyState === 'live')) {
+        return this.stream;
+      }
+    }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    this.stream = stream;
+    return stream;
+  }
+
+  /**
+   * Pre-warm audio stream on hover or idle
+   */
+  prewarmStream() {
+    if (this.isRecording || this.isPreparing) return;
+    if (!this.stream || !this.stream.active) {
+      this.ensureAudioStream().catch(() => {});
+    }
+  }
+
+  /**
+   * Update preparing UI state
+   */
+  setPreparingState(isPreparing) {
+    this.isPreparing = !!isPreparing;
+    if (!this.recordBtn) return;
+
+    if (this.isPreparing) {
+      this.recordBtn.classList.add('dda-preparing');
+      this.recordBtn.disabled = true;
+      const label = this.recordBtn.querySelector('.dda-vr-btn-label');
+      if (label) label.textContent = 'Preparing...';
+    } else {
+      this.recordBtn.classList.remove('dda-preparing');
+      this.recordBtn.disabled = false;
+      const label = this.recordBtn.querySelector('.dda-vr-btn-label');
+      if (label) {
+        label.textContent = this.recordings.length > 0 ? 'Record Another Take' : 'Record Voice';
+      }
+    }
+  }
+
+  /**
    * Start microphone audio recording
    */
   async startRecording() {
-    if (this.isRecording) return;
+    if (this.isRecording || this.isPreparing) return;
 
     // Stop any active voice playback
     this.pauseAllPlayback();
@@ -176,8 +223,13 @@ class VoiceRecorder {
       this.audioChunks = [];
       this.recordingDuration = 0;
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.stream = stream;
+      // If stream not ready, show preparing state
+      const hasWarmStream = this.stream && this.stream.active && this.stream.getAudioTracks().some(t => t.readyState === 'live');
+      if (!hasWarmStream) {
+        this.setPreparingState(true);
+      }
+
+      const stream = await this.ensureAudioStream();
 
       // Detect supported mime type
       let mimeType = 'audio/webm';
@@ -217,8 +269,8 @@ class VoiceRecorder {
           isPlaying: false
         };
 
-        this.recordings.push(newTake);
-        this.stopTracks();
+        this.recordings.unshift(newTake);
+        // Keep stream warm for 0ms delay on subsequent takes
         this.setRecordingState(false);
         this.renderRecordingsList();
 
@@ -234,12 +286,14 @@ class VoiceRecorder {
       };
 
       recorder.start(100);
+      this.setPreparingState(false);
       this.isRecording = true;
       this.startTimer();
       this.setRecordingState(true);
     } catch (err) {
       console.warn('VoiceRecorder: Microphone access error', err);
       this.showToast('Microphone access denied');
+      this.setPreparingState(false);
       this.setRecordingState(false);
     }
   }
@@ -256,11 +310,9 @@ class VoiceRecorder {
       try {
         this.mediaRecorder.stop();
       } catch (err) {
-        this.stopTracks();
         this.setRecordingState(false);
       }
     } else {
-      this.stopTracks();
       this.setRecordingState(false);
     }
   }
@@ -697,6 +749,9 @@ class VoiceRecorder {
       e.stopPropagation();
       this.startRecording();
     });
+    this.recordBtn.addEventListener('mouseenter', () => {
+      this.prewarmStream();
+    });
 
     // Stop Button
     this.stopBtn = document.createElement('button');
@@ -720,9 +775,18 @@ class VoiceRecorder {
     this.timerDisplay.textContent = '00:00';
     this.timerDisplay.style.display = 'none';
 
+    // Practice Tip
+    this.tipEl = document.createElement('div');
+    this.tipEl.className = 'dda-vr-tip';
+    this.tipEl.innerHTML = `
+      <span class="dda-vr-tip-icon">${ICONS ? ICONS.lightbulb(12) : '💡'}</span>
+      <span class="dda-vr-tip-text">Tip: Speak loudly & slowly to shadow</span>
+    `;
+
     actionRow.appendChild(this.recordBtn);
     actionRow.appendChild(this.stopBtn);
     actionRow.appendChild(this.timerDisplay);
+    actionRow.appendChild(this.tipEl);
     container.appendChild(actionRow);
 
     // Multi-recording List Container
