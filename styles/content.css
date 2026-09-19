@@ -1044,6 +1044,82 @@ body[data-bs-theme="dark"] {
   box-shadow: var(--dda-shadow-sm);
 }
 
+.dda-full-audio-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--dda-border);
+  background: var(--dda-bg-surface);
+  color: var(--dda-text-secondary);
+  padding: 3px 6px;
+  font-size: 11px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.dda-full-audio-btn:hover {
+  background: var(--dda-accent-subtle);
+  color: var(--dda-accent-primary);
+  border-color: var(--dda-accent-border);
+}
+
+.dda-full-audio-btn.playing {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  animation: ddaAudioPulse 1.8s infinite ease-in-out;
+}
+
+/* Inline Play/Pause Audio Button inside "Full transcript" tab */
+.dda-tab-inline-audio-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-radius: 50%;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1;
+}
+
+.dda-tab-inline-audio-btn:hover {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #059669;
+  transform: scale(1.12);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+}
+
+.dda-tab-inline-audio-btn.playing {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.55);
+  animation: ddaAudioPulse 1.8s infinite ease-in-out;
+}
+
+.dda-tab-inline-audio-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes ddaAudioPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); box-shadow: 0 0 12px rgba(16, 185, 129, 0.6); }
+  100% { transform: scale(1); }
+}
+
 .dda-popover-close-btn {
   border: none;
   background: transparent;
@@ -1169,6 +1245,14 @@ body[data-bs-theme="dark"] {
   border-left: 3px solid var(--dda-accent-primary);
   color: var(--dda-accent-text);
   font-weight: 700;
+  padding-left: 10px;
+}
+
+.dda-sentence-item.dda-playing-item {
+  background: rgba(16, 185, 129, 0.12);
+  border-left: 3px solid #10b981;
+  color: var(--dda-text-primary);
+  font-weight: 600;
   padding-left: 10px;
 }
 

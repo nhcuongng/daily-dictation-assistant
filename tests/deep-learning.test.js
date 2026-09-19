@@ -511,3 +511,153 @@ describe('DeepLearningLoop - Real-time Challenge & Active Audio Detection', () =
   });
 });
 
+describe('DeepLearningLoop - Full Conversation Audio Player', () => {
+  let loop;
+  let textarea;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    loop = new DeepLearningLoop();
+
+    // Mock HTMLMediaElement play/pause
+    window.HTMLMediaElement.prototype.play = jest.fn().mockImplementation(() => Promise.resolve());
+    window.HTMLMediaElement.prototype.pause = jest.fn();
+
+    const script = document.createElement('script');
+    script.textContent = `
+      window.appGlobals = {
+        "audioSrc": "https://dailydictation.com/upload/full-conversation.mp3",
+        "challenges": [
+          { "position": 1, "content": "Sentence 1.", "audioSrc": "https://dailydictation.com/upload/1.mp3", "timeStart": 0, "timeEnd": 5 },
+          { "position": 2, "content": "Sentence 2.", "audioSrc": "https://dailydictation.com/upload/2.mp3", "timeStart": 5, "timeEnd": 10 }
+        ]
+      };
+    `;
+    document.body.appendChild(script);
+
+    textarea = document.createElement('textarea');
+    document.body.appendChild(textarea);
+    loop.renderActions(textarea);
+  });
+
+  afterEach(() => {
+    loop.closeTranscriptPopover();
+    loop.cleanupFullAudio();
+    document.body.innerHTML = '';
+  });
+
+  test('extracts full audio source from appGlobals', () => {
+    const src = loop.getFullAudioSrc();
+    expect(src).toBe('https://dailydictation.com/upload/full-conversation.mp3');
+  });
+
+  test('renders full audio play button next to tabs in popover', () => {
+    loop.openTranscriptPopover();
+    const popover = loop.transcriptPopoverElement;
+    expect(popover).not.toBeNull();
+
+    const fullAudioBtn = popover.querySelector('.dda-full-audio-btn');
+    expect(fullAudioBtn).not.toBeNull();
+    expect(fullAudioBtn.title).toBe('Play Full Audio');
+  });
+
+  test('toggles full audio play and pause on button click', async () => {
+    loop.openTranscriptPopover();
+    const fullAudioBtn = loop.transcriptPopoverElement.querySelector('.dda-full-audio-btn');
+    expect(fullAudioBtn).not.toBeNull();
+
+    // Click play
+    fullAudioBtn.click();
+    expect(loop.isFullAudioPlaying).toBe(true);
+    expect(fullAudioBtn.classList.contains('playing')).toBe(true);
+    expect(fullAudioBtn.title).toBe('Pause Full Audio');
+
+    // Click pause
+    fullAudioBtn.click();
+    expect(loop.isFullAudioPlaying).toBe(false);
+    expect(fullAudioBtn.classList.contains('playing')).toBe(false);
+    expect(fullAudioBtn.title).toBe('Play Full Audio');
+  });
+
+  test('pauses page audio when full audio plays', () => {
+    const pageAudio = document.createElement('audio');
+    Object.defineProperty(pageAudio, 'paused', { value: false, configurable: true });
+    pageAudio.pause = jest.fn();
+    document.body.appendChild(pageAudio);
+
+    loop.openTranscriptPopover();
+    const fullAudioBtn = loop.transcriptPopoverElement.querySelector('.dda-full-audio-btn');
+    fullAudioBtn.click();
+
+    expect(pageAudio.pause).toHaveBeenCalled();
+  });
+
+  test('pauses full audio when popover is closed', () => {
+    loop.openTranscriptPopover();
+    const fullAudioBtn = loop.transcriptPopoverElement.querySelector('.dda-full-audio-btn');
+    fullAudioBtn.click();
+    expect(loop.isFullAudioPlaying).toBe(true);
+
+    loop.closeTranscriptPopover();
+    expect(loop.isFullAudioPlaying).toBe(false);
+  });
+
+  test('highlights active speaking sentence during full audio playback timeupdate', () => {
+    loop.openTranscriptPopover();
+    const items = loop.transcriptPopoverElement.querySelectorAll('.dda-sentence-item');
+    expect(items.length).toBe(2);
+
+    // Simulate playback at time = 2.5s (within Challenge 1: 0 - 5s)
+    loop.handleFullAudioTimeUpdate(2.5);
+    expect(items[0].classList.contains('dda-playing-item')).toBe(true);
+    expect(items[1].classList.contains('dda-playing-item')).toBe(false);
+
+    // Simulate playback at time = 7.0s (within Challenge 2: 5 - 10s)
+    loop.handleFullAudioTimeUpdate(7.0);
+    expect(items[0].classList.contains('dda-playing-item')).toBe(false);
+    expect(items[1].classList.contains('dda-playing-item')).toBe(true);
+
+    // Clear highlights on pause
+    loop.clearPlayingSentenceHighlight();
+    expect(items[0].classList.contains('dda-playing-item')).toBe(false);
+    expect(items[1].classList.contains('dda-playing-item')).toBe(false);
+  });
+
+  test('renders inline play/pause icon button inside Full transcript tab link on page', () => {
+    // Setup DailyDictation nav-tabs structure
+    const navTabs = document.createElement('ul');
+    navTabs.className = 'nav nav-tabs';
+    navTabs.innerHTML = `
+      <li class="nav-item js-tab" data-target-id="app-dictation-container">
+        <a class="nav-link text-muted active" href="#">Dictation</a>
+      </li>
+      <li class="nav-item js-tab" data-target-id="app-transcript">
+        <a class="nav-link text-muted" href="#">Full transcript</a>
+      </li>
+    `;
+    document.body.appendChild(navTabs);
+
+    loop.renderNavTabFullAudioButton();
+
+    const inlineBtn = document.querySelector('.dda-tab-inline-audio-btn');
+    expect(inlineBtn).not.toBeNull();
+    expect(inlineBtn.title).toBe('Play Full Audio');
+
+    const transcriptLink = document.querySelector('.nav-item.js-tab[data-target-id="app-transcript"] a');
+    expect(transcriptLink.contains(inlineBtn)).toBe(true);
+
+    // Click inline button to play
+    inlineBtn.click();
+    expect(loop.isFullAudioPlaying).toBe(true);
+    expect(inlineBtn.classList.contains('playing')).toBe(true);
+    expect(inlineBtn.title).toBe('Pause Full Audio');
+
+    // Click again to pause
+    inlineBtn.click();
+    expect(loop.isFullAudioPlaying).toBe(false);
+    expect(inlineBtn.classList.contains('playing')).toBe(false);
+    expect(inlineBtn.title).toBe('Play Full Audio');
+  });
+});
+
+

@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-09-19 (Full Conversation Audio Player & Infinite Mutation Loop Prevention)
+
+### Added
+- **Inline Full Conversation Audio Player (`▶` / `⏸`)**:
+  - Integrated an inline vector Play/Pause audio button directly inside the `Full transcript` tab on the DailyDictation exercise navigation bar.
+  - Added dedicated full conversation audio playback inside the Peek Transcript popover header.
+  - Automatically extracts conversation audio source (`appGlobals.audioSrc`, Accordion `<audio>`, or JSON-LD quiz audio).
+  - Audio playback synchronization:
+    - Automatically pauses single sentence exercise audio (`<audio>`) when full conversation audio starts playing to prevent acoustic overlap.
+    - Automatically pauses full audio when user triggers single challenge playback.
+    - Synchronizes playback speed with the custom `AudioControl` speed settings.
+  - Real-time sentence highlighting: automatically highlights and auto-scrolls the active speaking sentence in the Full Transcript list using `timeStart`/`timeEnd` timestamps during audio playback.
+
+### Fixed
+- **Infinite MutationObserver Loop & Page Freeze Prevention**:
+  - Filtered out extension-internal DOM changes (`.dda-*`) in `MutationObserver`.
+  - Added `requestAnimationFrame` debouncing to decouple DOM mutation observation from script execution.
+  - Added state-check guards to `renderNavTabFullAudioButton` and `updateFullAudioBtnState` to eliminate redundant DOM writes.
+  - Cached `appGlobals` extraction to prevent repetitive JSON parsing and script tag traversals.
+
+---
+
 ## [1.5.1] - 2026-09-01 (Vocabulary Extension Bridge Enhancement & Proper Nouns Filtering)
 
 ### Added

@@ -1,6 +1,8 @@
-// Initialize Extension using MutationObserver for SPA support
+// Initialize Extension using MutationObserver for SPA support with debounce
 function startObserver() {
-  const observer = new MutationObserver((mutations) => {
+  let isScheduled = false;
+
+  const runUpdates = () => {
     // Hide default speed control (which is usually a sibling dropdown next to the audio element)
     const audioEl = document.querySelector('audio');
     if (audioEl && audioEl.parentNode) {
@@ -24,30 +26,45 @@ function startObserver() {
       el.style.opacity = '0';
     });
 
-    // Always check for challenge changes in SPA
-    if (window.DeepLearningLoop) {
-      window.DeepLearningLoop.checkCurrentChallengeChange();
-    }
-
-    // Always keep audio speed in sync with current audio element
-    if (window.ddaAudioControl) {
+    // Try to find the audio element and init speed control
+    if (audioEl && window.ddaAudioControl) {
+      window.ddaAudioControl.init();
       window.ddaAudioControl.syncPlaybackRate();
     }
 
-    // If the UI is already rendered and still in the DOM, skip re-init of controls
-    if (window.ddaAudioControl && document.querySelector('.dda-speed-control') && document.querySelector('.dda-actions-container')) {
-      return;
-    }
-
-    // Try to find the audio element
-    if (audioEl && window.ddaAudioControl) {
-      window.ddaAudioControl.init();
-    }
-
-    // Init deep learning loop UI
+    // Init and check deep learning loop UI
     if (window.DeepLearningLoop) {
       window.DeepLearningLoop.init();
+      window.DeepLearningLoop.checkCurrentChallengeChange();
+      window.DeepLearningLoop.renderNavTabFullAudioButton();
     }
+  };
+
+  const observer = new MutationObserver((mutations) => {
+    // Ignore mutations originating entirely from internal extension elements (.dda-*)
+    const isOnlyDda = mutations.every(m => {
+      const target = m.target;
+      if (!target) return true;
+      if (target.nodeType === 1) {
+        const classNames = target.className;
+        if (typeof classNames === 'string' && classNames.includes('dda-')) return true;
+        if (typeof target.closest === 'function' && target.closest('[class*="dda-"]')) return true;
+      } else if (target.parentElement && typeof target.parentElement.closest === 'function') {
+        if (target.parentElement.closest('[class*="dda-"]')) return true;
+      }
+      return false;
+    });
+
+    if (isOnlyDda) return;
+
+    if (isScheduled) return;
+    isScheduled = true;
+
+    const scheduleFn = typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame : (cb => setTimeout(cb, 30));
+    scheduleFn(() => {
+      isScheduled = false;
+      runUpdates();
+    });
   });
 
   // Watch the whole body for changes
@@ -55,14 +72,9 @@ function startObserver() {
     childList: true,
     subtree: true
   });
-  
-  // Also try once immediately in case it's already there
-  if (window.ddaAudioControl) {
-    window.ddaAudioControl.init();
-  }
-  if (window.DeepLearningLoop) {
-    window.DeepLearningLoop.init();
-  }
+
+  // Also run once immediately
+  runUpdates();
 }
 
 // Wait for DOM

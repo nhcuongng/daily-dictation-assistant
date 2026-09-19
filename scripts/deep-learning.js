@@ -7,6 +7,9 @@ class DeepLearningLoop {
     this.lastChallengeIndex = -1;
     this.isTranscriptPinned = false;
     this.customPopoverCoords = null;
+    this.fullAudio = null;
+    this.isFullAudioPlaying = false;
+    this._boundFullAudioEvents = null;
 
     this.peekTips = {
       subtle: [
@@ -38,6 +41,7 @@ class DeepLearningLoop {
       this.renderActions(textarea);
     }
 
+    this.renderNavTabFullAudioButton();
     this.checkCurrentChallengeChange();
 
     // Attach navigation click listeners to detect SPA challenge changes
@@ -47,9 +51,11 @@ class DeepLearningLoop {
         const target = e.target;
         if (target && (target.closest('#btn-arrow-left, #btn-arrow-right, .dropdown, #app-dictation, [class*="pagination"], [class*="challenge"], [id*="react-aria"]') || target.tagName === 'BUTTON')) {
           setTimeout(() => {
+            this.renderNavTabFullAudioButton();
             this.checkCurrentChallengeChange();
           }, 30);
           setTimeout(() => {
+            this.renderNavTabFullAudioButton();
             this.checkCurrentChallengeChange();
           }, 150);
         }
@@ -62,6 +68,10 @@ class DeepLearningLoop {
       this._audioListenersAttached = true;
       ['play', 'loadeddata', 'canplay', 'ended'].forEach(evt => {
         audioEl.addEventListener(evt, () => {
+          if (evt === 'play' && this.isFullAudioPlaying) {
+            this.pauseFullAudio();
+          }
+          this.renderNavTabFullAudioButton();
           this.checkCurrentChallengeChange();
         });
       });
@@ -69,6 +79,7 @@ class DeepLearningLoop {
   }
 
   checkCurrentChallengeChange() {
+    this.renderNavTabFullAudioButton();
     const currentIndex = this.getCurrentChallengeIndex();
     if (currentIndex !== this.lastChallengeIndex) {
       this.lastChallengeIndex = currentIndex;
@@ -217,13 +228,20 @@ class DeepLearningLoop {
 
   getAppGlobals() {
     try {
+      if (typeof window !== 'undefined' && window.appGlobals) {
+        return window.appGlobals;
+      }
+      if (this._cachedAppGlobals) {
+        return this._cachedAppGlobals;
+      }
       const scripts = document.querySelectorAll('script');
       for (const script of scripts) {
         const text = script.textContent || '';
         if (text.includes('window.appGlobals =') || text.includes('appGlobals =')) {
           const match = text.match(/(?:window\.)?appGlobals\s*=\s*(\{.+?\});/s);
           if (match) {
-            return JSON.parse(match[1]);
+            this._cachedAppGlobals = JSON.parse(match[1]);
+            return this._cachedAppGlobals;
           }
         }
       }
@@ -233,6 +251,292 @@ class DeepLearningLoop {
     return null;
   }
 
+  getFullAudioSrc() {
+    const appGlobals = this.getAppGlobals();
+    if (appGlobals) {
+      if (appGlobals.audioSrc && typeof appGlobals.audioSrc === 'string' && appGlobals.audioSrc.trim().length > 0) {
+        return appGlobals.audioSrc.trim();
+      }
+      if (appGlobals.fullAudioSrc && typeof appGlobals.fullAudioSrc === 'string' && appGlobals.fullAudioSrc.trim().length > 0) {
+        return appGlobals.fullAudioSrc.trim();
+      }
+    }
+
+    // Fallback: Check audio in accordion (#transcriptAccordionItem or #transcriptAccordion)
+    const accordionAudio = document.querySelector('#transcriptAccordionItem audio, #transcriptAccordion audio');
+    if (accordionAudio) {
+      const source = accordionAudio.querySelector('source');
+      const src = (source && source.src) || accordionAudio.src || accordionAudio.currentSrc;
+      if (src && typeof src === 'string' && src.trim().length > 0) {
+        return src.trim();
+      }
+    }
+
+    // Fallback: Check JSON-LD Quiz audio
+    try {
+      const ldJsonEl = document.querySelector('script[type="application/ld+json"]');
+      if (ldJsonEl && ldJsonEl.textContent) {
+        const data = JSON.parse(ldJsonEl.textContent);
+        if (data && data.audio && typeof data.audio === 'string' && data.audio.trim().length > 0) {
+          return data.audio.trim();
+        }
+      }
+    } catch (e) {}
+
+    return '';
+  }
+
+  renderNavTabFullAudioButton() {
+    const fullAudioSrc = this.getFullAudioSrc();
+    if (!fullAudioSrc) return;
+
+    const transcriptTab = document.querySelector('.nav.nav-tabs .js-tab[data-target-id="app-transcript"], .nav.nav-tabs li[data-target-id="app-transcript"]')
+      || Array.from(document.querySelectorAll('.nav.nav-tabs li, .nav.nav-tabs .nav-item')).find(el => el.textContent && el.textContent.toLowerCase().includes('full transcript'));
+
+    if (!transcriptTab) return;
+
+    // Remove legacy separate item if present
+    if (transcriptTab.parentNode) {
+      const oldNavItem = transcriptTab.parentNode.querySelector('.dda-nav-full-audio-item');
+      if (oldNavItem) {
+        oldNavItem.remove();
+      }
+    }
+
+    const targetLink = transcriptTab.querySelector('a') || transcriptTab;
+    const existingInlineBtn = targetLink.querySelector('.dda-tab-inline-audio-btn');
+    if (existingInlineBtn && document.body.contains(existingInlineBtn)) {
+      // Already rendered in DOM - DO NOT mutate DOM to prevent MutationObserver loop
+      return;
+    }
+
+    const inlineBtn = document.createElement('button');
+    inlineBtn.type = 'button';
+    inlineBtn.className = `dda-tab-inline-audio-btn ${this.isFullAudioPlaying ? 'playing' : ''}`;
+    inlineBtn.title = this.isFullAudioPlaying ? 'Pause Full Audio' : 'Play Full Audio';
+    inlineBtn.innerHTML = `<span class="dda-tab-inline-audio-icon">${this.isFullAudioPlaying ? (ICONS ? ICONS.pause(11) : '⏸') : (ICONS ? ICONS.play(11) : '▶')}</span>`;
+
+    inlineBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggleFullAudio(inlineBtn);
+    });
+
+    targetLink.appendChild(inlineBtn);
+  }
+
+  toggleFullAudio(button) {
+    if (this.isFullAudioPlaying) {
+      this.pauseFullAudio(button);
+    } else {
+      this.playFullAudio(button);
+    }
+  }
+
+  playFullAudio(button) {
+    const src = this.getFullAudioSrc();
+    if (!src) return;
+
+    // Pause page sentence audio to prevent clash
+    const pageAudio = document.querySelector('audio');
+    if (pageAudio && !pageAudio.paused) {
+      try {
+        pageAudio.pause();
+      } catch (e) {}
+    }
+
+    // Stop WhatIfSound if active
+    if (window.WhatIfSound && window.WhatIfSound.isPlaying) {
+      try {
+        window.WhatIfSound.stop();
+      } catch (e) {}
+    }
+
+    const currentSrc = this.fullAudio ? (this.fullAudio.getAttribute('data-src') || this.fullAudio.src) : '';
+    if (!this.fullAudio || currentSrc !== src) {
+      this.cleanupFullAudio();
+      try {
+        this.fullAudio = typeof Audio !== 'undefined' ? new Audio(src) : document.createElement('audio');
+        this.fullAudio.src = src;
+        if (typeof this.fullAudio.setAttribute === 'function') {
+          this.fullAudio.setAttribute('data-src', src);
+        }
+      } catch (e) {
+        this.fullAudio = document.createElement('audio');
+        this.fullAudio.src = src;
+      }
+      this._setupFullAudioEvents(this.fullAudio);
+    }
+
+    // Sync playback rate with AudioControl if present
+    if (window.ddaAudioControl && typeof window.ddaAudioControl.currentSpeed === 'number') {
+      try {
+        this.fullAudio.playbackRate = window.ddaAudioControl.currentSpeed;
+      } catch (e) {}
+    }
+
+    try {
+      this.isFullAudioPlaying = true;
+      this.updateFullAudioBtnState(button, true);
+      const playPromise = this.fullAudio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise
+          .catch((err) => {
+            console.warn('Full audio playback failed:', err);
+            this.isFullAudioPlaying = false;
+            this.updateFullAudioBtnState(button, false);
+          });
+      }
+    } catch (e) {
+      console.warn('Failed to play full audio:', e);
+      this.isFullAudioPlaying = false;
+      this.updateFullAudioBtnState(button, false);
+    }
+  }
+
+  pauseFullAudio(button) {
+    if (this.fullAudio) {
+      try {
+        this.fullAudio.pause();
+      } catch (e) {}
+    }
+    this.isFullAudioPlaying = false;
+    this.updateFullAudioBtnState(button, false);
+    this.clearPlayingSentenceHighlight();
+  }
+
+  cleanupFullAudio() {
+    if (this.fullAudio) {
+      try {
+        this.fullAudio.pause();
+      } catch (e) {}
+      if (this._boundFullAudioEvents) {
+        Object.entries(this._boundFullAudioEvents).forEach(([evt, handler]) => {
+          try {
+            this.fullAudio.removeEventListener(evt, handler);
+          } catch (e) {}
+        });
+        this._boundFullAudioEvents = null;
+      }
+      this.fullAudio = null;
+    }
+    this.isFullAudioPlaying = false;
+    this.updateFullAudioBtnState(null, false);
+    this.clearPlayingSentenceHighlight();
+  }
+
+  _setupFullAudioEvents(audio) {
+    if (!audio) return;
+    const onPlay = () => {
+      this.isFullAudioPlaying = true;
+      this.updateFullAudioBtnState(null, true);
+    };
+    const onPause = () => {
+      this.isFullAudioPlaying = false;
+      this.updateFullAudioBtnState(null, false);
+      this.clearPlayingSentenceHighlight();
+    };
+    const onEnded = () => {
+      this.isFullAudioPlaying = false;
+      this.updateFullAudioBtnState(null, false);
+      this.clearPlayingSentenceHighlight();
+    };
+    const onTimeUpdate = () => {
+      this.handleFullAudioTimeUpdate(audio.currentTime);
+    };
+
+    if (typeof audio.addEventListener === 'function') {
+      audio.addEventListener('play', onPlay);
+      audio.addEventListener('pause', onPause);
+      audio.addEventListener('ended', onEnded);
+      audio.addEventListener('timeupdate', onTimeUpdate);
+    }
+
+    this._boundFullAudioEvents = {
+      play: onPlay,
+      pause: onPause,
+      ended: onEnded,
+      timeupdate: onTimeUpdate
+    };
+  }
+
+  updateFullAudioBtnState(button, isPlaying) {
+    const isPlayingBool = Boolean(isPlaying);
+
+    // Synchronize all popover full audio buttons
+    const popoverBtns = document.querySelectorAll('.dda-full-audio-btn');
+    popoverBtns.forEach(btn => {
+      const currentlyPlaying = btn.classList.contains('playing');
+      if (currentlyPlaying !== isPlayingBool) {
+        if (isPlayingBool) {
+          btn.classList.add('playing');
+          btn.innerHTML = `${ICONS ? ICONS.pause(12) : '⏸'}`;
+          btn.title = 'Pause Full Audio';
+        } else {
+          btn.classList.remove('playing');
+          btn.innerHTML = `${ICONS ? ICONS.play(12) : '▶'}`;
+          btn.title = 'Play Full Audio';
+        }
+      }
+    });
+
+    // Synchronize inline tab full audio buttons
+    const inlineTabBtns = document.querySelectorAll('.dda-tab-inline-audio-btn, .dda-tab-full-audio-btn');
+    inlineTabBtns.forEach(btn => {
+      const currentlyPlaying = btn.classList.contains('playing');
+      if (currentlyPlaying !== isPlayingBool) {
+        const iconEl = btn.querySelector('.dda-tab-inline-audio-icon, .dda-tab-full-audio-icon');
+        if (isPlayingBool) {
+          btn.classList.add('playing');
+          btn.title = 'Pause Full Audio';
+          if (iconEl) iconEl.innerHTML = `${ICONS ? ICONS.pause(11) : '⏸'}`;
+        } else {
+          btn.classList.remove('playing');
+          btn.title = 'Play Full Audio';
+          if (iconEl) iconEl.innerHTML = `${ICONS ? ICONS.play(11) : '▶'}`;
+        }
+      }
+    });
+  }
+
+  handleFullAudioTimeUpdate(currentTime) {
+    if (!this.transcriptPopoverElement) return;
+    const fullList = this.transcriptPopoverElement.querySelector('.dda-full-transcript-list');
+    if (!fullList) return;
+
+    const items = fullList.querySelectorAll('.dda-sentence-item');
+    let matchedIndex = -1;
+
+    items.forEach((item, i) => {
+      const start = parseFloat(item.getAttribute('data-time-start'));
+      const end = parseFloat(item.getAttribute('data-time-end'));
+      if (!isNaN(start)) {
+        if (currentTime >= start && (isNaN(end) || currentTime < end)) {
+          matchedIndex = i;
+        }
+      }
+    });
+
+    items.forEach((item, i) => {
+      if (i === matchedIndex) {
+        if (!item.classList.contains('dda-playing-item')) {
+          item.classList.add('dda-playing-item');
+          if (typeof item.scrollIntoView === 'function') {
+            item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+        }
+      } else {
+        item.classList.remove('dda-playing-item');
+      }
+    });
+  }
+
+  clearPlayingSentenceHighlight() {
+    if (!this.transcriptPopoverElement) return;
+    const items = this.transcriptPopoverElement.querySelectorAll('.dda-full-transcript-list .dda-playing-item');
+    items.forEach(el => el.classList.remove('dda-playing-item'));
+  }
+
   getChallengesData() {
     // Strategy 1: Look for appGlobals.challenges in script tags
     const appGlobals = this.getAppGlobals();
@@ -240,7 +544,9 @@ class DeepLearningLoop {
       return appGlobals.challenges.map((c, i) => ({
         position: c.position || (i + 1),
         content: (c.content || '').trim(),
-        audioSrc: c.audioSrc || ''
+        audioSrc: c.audioSrc || '',
+        timeStart: typeof c.timeStart === 'number' ? c.timeStart : (c.timeStart != null && !isNaN(parseFloat(c.timeStart)) ? parseFloat(c.timeStart) : null),
+        timeEnd: typeof c.timeEnd === 'number' ? c.timeEnd : (c.timeEnd != null && !isNaN(parseFloat(c.timeEnd)) ? parseFloat(c.timeEnd) : null)
       }));
     }
 
@@ -438,11 +744,13 @@ class DeepLearningLoop {
     }
     this.closeTranscriptPopover();
 
-    const challenges = this.getChallenges();
+    const challengeData = this.getChallengesData();
+    const challenges = challengeData.map(c => c.content);
     const currentIndex = this.getCurrentChallengeIndex();
     const currentSentence = challenges[currentIndex] || this.getTranscriptText() || 'Transcript not found.';
     const textarea = document.querySelector('textarea');
     const userText = textarea ? textarea.value : '';
+    const fullAudioSrc = this.getFullAudioSrc();
 
     const popover = document.createElement('div');
     popover.className = `dda-transcript-popover dda-zen-popover ${this.isTranscriptPinned ? 'dda-pinned' : ''}`;
@@ -457,6 +765,7 @@ class DeepLearningLoop {
           <button class="dda-popover-pin-btn ${this.isTranscriptPinned ? 'active' : ''}" title="${this.isTranscriptPinned ? 'Unpin window' : 'Pin window'}">${ICONS ? ICONS.pin(13) : '📌'}</button>
           <button class="dda-transcript-tab-btn active" data-tab="current" title="Current Sentence">${ICONS ? ICONS.target(12) : '🎯'} Sentence</button>
           <button class="dda-transcript-tab-btn" data-tab="full" title="Full Transcript">${ICONS ? ICONS.fileText(12) : '📜'} Full</button>
+          ${fullAudioSrc ? `<button class="dda-full-audio-btn ${this.isFullAudioPlaying ? 'playing' : ''}" title="${this.isFullAudioPlaying ? 'Pause Full Audio' : 'Play Full Audio'}">${this.isFullAudioPlaying ? (ICONS ? ICONS.pause(12) : '⏸') : (ICONS ? ICONS.play(12) : '▶')}</button>` : ''}
           <button class="dda-popover-close-btn" title="Close (Esc)">${ICONS ? ICONS.close(12) : '✖'}</button>
         </div>
       </div>
@@ -469,10 +778,10 @@ class DeepLearningLoop {
         </div>
         <div class="dda-tab-content-full" style="display: none;">
           <div class="dda-full-transcript-list">
-            ${challenges.length > 0 ? challenges.map((sent, i) => `
-              <div class="dda-sentence-item ${i === currentIndex ? 'active' : ''}">
+            ${challengeData.length > 0 ? challengeData.map((item, i) => `
+              <div class="dda-sentence-item ${i === currentIndex ? 'active' : ''}" data-index="${i}" ${item.timeStart != null ? `data-time-start="${item.timeStart}"` : ''} ${item.timeEnd != null ? `data-time-end="${item.timeEnd}"` : ''}>
                 <span style="opacity: 0.5; font-size: 11px; margin-right: 6px;">#${i + 1}</span>
-                ${i === currentIndex ? `<strong>${sent}</strong>` : sent}
+                ${i === currentIndex ? `<strong>${item.content}</strong>` : item.content}
               </div>
             `).join('') : `<div>${this.getTranscriptText()}</div>`}
           </div>
@@ -691,6 +1000,16 @@ class DeepLearningLoop {
       });
     });
 
+    // Full audio button
+    const fullAudioBtn = popover.querySelector('.dda-full-audio-btn');
+    if (fullAudioBtn) {
+      fullAudioBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggleFullAudio(fullAudioBtn);
+      });
+    }
+
     // Close button
     const closeBtn = popover.querySelector('.dda-popover-close-btn');
     closeBtn.addEventListener('click', (e) => {
@@ -722,6 +1041,9 @@ class DeepLearningLoop {
   }
 
   closeTranscriptPopover() {
+    if (this.isFullAudioPlaying) {
+      this.pauseFullAudio();
+    }
     if (this.transcriptPopoverElement) {
       this.transcriptPopoverElement.remove();
       this.transcriptPopoverElement = null;
