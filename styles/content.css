@@ -2386,6 +2386,20 @@ body[data-bs-theme="dark"] {
   background: rgba(16, 185, 129, 0.03);
 }
 
+@keyframes ddaSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dda-spin {
+  animation: ddaSpin 0.8s linear infinite;
+  display: inline-block;
+}
+
 .dda-vr-timer {
   font-size: 11px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -2439,9 +2453,10 @@ body[data-bs-theme="dark"] {
 }
 
 .dda-btn-record.dda-preparing {
-  background: #6366f1;
-  opacity: 0.85;
+  background: #4f46e5;
+  opacity: 0.9;
   cursor: wait;
+  pointer-events: none;
 }
 
 .dda-btn-stop-record {
