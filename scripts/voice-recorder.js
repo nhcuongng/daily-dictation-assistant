@@ -37,7 +37,15 @@ function audioBufferToWav(buffer, opt = {}) {
       inputIndex++;
     }
   } else {
-    samples = buffer.getChannelData(0);
+    // Clone channel data to safely apply fade-in without mutating the input buffer
+    samples = new Float32Array(buffer.getChannelData(0));
+  }
+
+  // Apply gentle soft fade-in (30ms) to eliminate initial hardware power-on DC click/pop noise
+  const fadeDuration = opt.fadeDuration !== undefined ? opt.fadeDuration : 0.03;
+  const fadeSamples = Math.min(samples.length, Math.floor(sampleRate * fadeDuration));
+  for (let i = 0; i < fadeSamples; i++) {
+    samples[i] *= (i / fadeSamples);
   }
 
   const bytesPerSample = bitDepth / 8;
@@ -125,6 +133,7 @@ class VoiceRecorder {
     this.audioChunks = [];
     this.stream = null;
     this.isRecording = false;
+    this.isPreparing = false;
     this.recordingDuration = 0;
     this.timerInterval = null;
     this.challengeIndex = 0;
@@ -164,72 +173,84 @@ class VoiceRecorder {
         return this.stream;
       }
     }
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const constraints = {
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1
+      }
+    };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
     this.stream = stream;
     return stream;
   }
 
   /**
-   * Pre-warm audio stream on hover or idle
-   */
-  prewarmStream() {
-    if (this.isRecording || this.isPreparing) return;
-    if (!this.stream || !this.stream.active) {
-      this.ensureAudioStream().catch(() => {});
-    }
-  }
-
-  /**
-   * Update preparing UI state
+   * Update preparing/loading UI state
    */
   setPreparingState(isPreparing) {
     this.isPreparing = !!isPreparing;
     if (!this.recordBtn) return;
 
+    const iconSpan = this.recordBtn.querySelector('.dda-vr-btn-icon');
+    const labelSpan = this.recordBtn.querySelector('.dda-vr-btn-label');
+
     if (this.isPreparing) {
       this.recordBtn.classList.add('dda-preparing');
       this.recordBtn.disabled = true;
-      const label = this.recordBtn.querySelector('.dda-vr-btn-label');
-      if (label) label.textContent = 'Preparing...';
+      if (iconSpan) iconSpan.innerHTML = ICONS ? ICONS.spinner(13) : '⏳';
+      if (labelSpan) labelSpan.textContent = 'Starting...';
     } else {
       this.recordBtn.classList.remove('dda-preparing');
       this.recordBtn.disabled = false;
-      const label = this.recordBtn.querySelector('.dda-vr-btn-label');
-      if (label) {
-        label.textContent = this.recordings.length > 0 ? 'Record Another Take' : 'Record Voice';
+      if (iconSpan) iconSpan.innerHTML = ICONS ? ICONS.mic(13) : '🎙️';
+      if (labelSpan) {
+        labelSpan.textContent = this.recordings.length > 0 ? 'Record Another Take' : 'Record Voice';
       }
     }
   }
 
   /**
-   * Start microphone audio recording
+   * Start microphone audio recording with loading state and settling delay
    */
-  async startRecording() {
+  async startRecording(settleDelayMs = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') ? 0 : 250) {
     if (this.isRecording || this.isPreparing) return;
 
     // Stop any active voice playback
     this.pauseAllPlayback();
 
-    // Stop native lesson audio or TTS if playing
-    const audioEl = document.querySelector('audio');
-    if (audioEl && !audioEl.paused) {
-      audioEl.pause();
-    }
+    // Stop all native lesson audio or TTS if playing
+    const audioElements = document.querySelectorAll('audio');
+    audioElements.forEach(audioEl => {
+      if (!audioEl.paused) {
+        audioEl.pause();
+      }
+    });
     if (window.WhatIfSound && window.WhatIfSound.isPlaying) {
       window.WhatIfSound.stop();
     }
+
+    // Set loading state on button while acquiring audio stream and setting up recorder
+    this.setPreparingState(true);
 
     try {
       this.audioChunks = [];
       this.recordingDuration = 0;
 
-      // If stream not ready, show preparing state
-      const hasWarmStream = this.stream && this.stream.active && this.stream.getAudioTracks().some(t => t.readyState === 'live');
-      if (!hasWarmStream) {
-        this.setPreparingState(true);
+      const stream = await this.ensureAudioStream();
+
+      // Brief settling delay during loading state to let microphone hardware
+      // power-on transients, Bluetooth SCO profile switch, and WebRTC AGC settle
+      if (settleDelayMs > 0) {
+        await new Promise(resolve => setTimeout(resolve, settleDelayMs));
       }
 
-      const stream = await this.ensureAudioStream();
+      if (!this.isPreparing) {
+        // Cancelled or reset during settling delay
+        this.stopTracks();
+        return;
+      }
 
       // Detect supported mime type
       let mimeType = 'audio/webm';
@@ -270,7 +291,8 @@ class VoiceRecorder {
         };
 
         this.recordings.unshift(newTake);
-        // Keep stream warm for 0ms delay on subsequent takes
+        // Release audio stream tracks to prevent background mic noise & Bluetooth degradation
+        this.stopTracks();
         this.setRecordingState(false);
         this.renderRecordingsList();
 
@@ -295,6 +317,7 @@ class VoiceRecorder {
       this.showToast('Microphone access denied');
       this.setPreparingState(false);
       this.setRecordingState(false);
+      this.stopTracks();
     }
   }
 
@@ -302,7 +325,10 @@ class VoiceRecorder {
    * Stop microphone audio recording
    */
   stopRecording() {
-    if (!this.isRecording) return;
+    if (!this.isRecording) {
+      this.stopTracks();
+      return;
+    }
     this.stopTimer();
     this.isRecording = false;
 
@@ -310,9 +336,11 @@ class VoiceRecorder {
       try {
         this.mediaRecorder.stop();
       } catch (err) {
+        this.stopTracks();
         this.setRecordingState(false);
       }
     } else {
+      this.stopTracks();
       this.setRecordingState(false);
     }
   }
@@ -566,7 +594,11 @@ class VoiceRecorder {
    */
   reset() {
     this.stopRecording();
+    this.stopTracks();
     this.pauseAllPlayback();
+    if (this.isPreparing) {
+      this.setPreparingState(false);
+    }
 
     this.recordings.forEach(take => {
       if (take.url) {
@@ -605,7 +637,12 @@ class VoiceRecorder {
     if (this.isRecording) {
       this.containerEl.classList.add('dda-is-recording');
       if (this.recordBtn) this.recordBtn.style.display = 'none';
-      if (this.stopBtn) this.stopBtn.style.display = 'inline-flex';
+      if (this.stopBtn) {
+        this.stopBtn.style.display = 'inline-flex';
+        this.stopBtn.title = 'Stop recording';
+        const label = this.stopBtn.querySelector('.dda-vr-btn-label');
+        if (label) label.textContent = 'Stop';
+      }
       if (this.timerDisplay) this.timerDisplay.style.display = 'inline-flex';
     } else {
       this.containerEl.classList.remove('dda-is-recording');
@@ -616,7 +653,12 @@ class VoiceRecorder {
           label.textContent = hasRecordings ? 'Record Another Take' : 'Record Voice';
         }
       }
-      if (this.stopBtn) this.stopBtn.style.display = 'none';
+      if (this.stopBtn) {
+        this.stopBtn.style.display = 'none';
+        this.stopBtn.title = 'Stop recording';
+        const label = this.stopBtn.querySelector('.dda-vr-btn-label');
+        if (label) label.textContent = 'Stop';
+      }
       if (this.timerDisplay) this.timerDisplay.style.display = 'none';
     }
 
@@ -748,9 +790,6 @@ class VoiceRecorder {
       e.preventDefault();
       e.stopPropagation();
       this.startRecording();
-    });
-    this.recordBtn.addEventListener('mouseenter', () => {
-      this.prewarmStream();
     });
 
     // Stop Button

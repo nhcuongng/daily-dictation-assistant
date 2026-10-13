@@ -130,6 +130,25 @@ describe('VoiceRecorder & WAV Encoder', () => {
       expect(wavArrayBuffer.byteLength).toBe(44 + 2 * 2); // 44 bytes header + 2 samples * 2 bytes
     });
 
+    test('applies soft fade-in to eliminate initial DC click/pop artifacts', () => {
+      const ch0 = new Float32Array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
+      const mockBuffer = {
+        numberOfChannels: 1,
+        sampleRate: 100,
+        length: 10,
+        getChannelData: jest.fn(() => ch0)
+      };
+
+      const wavArrayBuffer = audioBufferToWav(mockBuffer, { fadeDuration: 0.03 });
+      const view = new DataView(wavArrayBuffer);
+      // Sample 0: scaled by 0/3 = 0
+      expect(view.getInt16(44, true)).toBe(0);
+      // Sample 1: scaled by 1/3
+      expect(view.getInt16(46, true)).toBeCloseTo(Math.floor(0x7FFF / 3), -2);
+      // Sample 3 (past 30ms / 3 samples): full scale 1.0 -> 32767
+      expect(view.getInt16(50, true)).toBe(32767);
+    });
+
     test('blobToWavBlob converts raw Blob to audio/wav Blob', async () => {
       const inputBlob = new Blob(['mock-audio'], { type: 'audio/webm' });
       inputBlob.arrayBuffer = jest.fn().mockResolvedValue(new ArrayBuffer(100));
@@ -192,7 +211,14 @@ describe('VoiceRecorder & WAV Encoder', () => {
 
       await recorder.startRecording();
 
-      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({ audio: true });
+      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1
+        }
+      });
       expect(global.MediaRecorder).toHaveBeenCalledWith(mockMediaStream, { mimeType: 'audio/webm;codecs=opus' });
       expect(mockMediaRecorderInstance.start).toHaveBeenCalledWith(100);
       expect(recorder.isRecording).toBe(true);
@@ -200,6 +226,101 @@ describe('VoiceRecorder & WAV Encoder', () => {
       expect(recorder.recordBtn.style.display).toBe('none');
       expect(recorder.stopBtn.style.display).toBe('inline-flex');
       expect(recorder.timerDisplay.style.display).toBe('inline-flex');
+    });
+
+    test('settles audio stream with delay before starting recording when settleDelayMs is provided', async () => {
+      const parent = document.createElement('div');
+      document.body.appendChild(parent);
+      recorder.render(parent);
+
+      const recordPromise = recorder.startRecording(250);
+
+      expect(recorder.isPreparing).toBe(true);
+      expect(recorder.isRecording).toBe(false);
+
+      // Flush microtasks so ensureAudioStream resolves and reaches setTimeout
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // Advance timers by 250ms
+      jest.advanceTimersByTime(250);
+      await recordPromise;
+
+      expect(recorder.isPreparing).toBe(false);
+      expect(recorder.isRecording).toBe(true);
+      expect(mockMediaRecorderInstance.start).toHaveBeenCalledWith(100);
+    });
+
+    test('cancels during settling delay if reset is called before delay completes', async () => {
+      const parent = document.createElement('div');
+      document.body.appendChild(parent);
+      recorder.render(parent);
+
+      const recordPromise = recorder.startRecording(250);
+      expect(recorder.isPreparing).toBe(true);
+
+      // Flush microtasks to reach setTimeout
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // User or system resets before 250ms
+      recorder.reset();
+
+      jest.advanceTimersByTime(250);
+      await recordPromise;
+
+      expect(recorder.isRecording).toBe(false);
+      expect(mockMediaRecorderInstance.start).not.toHaveBeenCalled();
+    });
+
+    test('shows loading state on record button while preparing and transitions to recording', async () => {
+      const parent = document.createElement('div');
+      document.body.appendChild(parent);
+      recorder.render(parent);
+
+      let resolveStream;
+      navigator.mediaDevices.getUserMedia.mockImplementationOnce(() => new Promise((resolve) => {
+        resolveStream = () => resolve(mockMediaStream);
+      }));
+
+      const recordPromise = recorder.startRecording();
+
+      // Check loading/preparing state before stream resolves
+      expect(recorder.isPreparing).toBe(true);
+      expect(recorder.recordBtn.disabled).toBe(true);
+      expect(recorder.recordBtn.classList.contains('dda-preparing')).toBe(true);
+      expect(recorder.recordBtn.querySelector('.dda-vr-btn-label').textContent).toBe('Starting...');
+      expect(recorder.recordBtn.querySelector('.dda-icon.dda-spin')).not.toBeNull();
+      expect(recorder.isRecording).toBe(false);
+
+      // Now stream resolves
+      resolveStream();
+      await recordPromise;
+
+      expect(recorder.isPreparing).toBe(false);
+      expect(recorder.isRecording).toBe(true);
+      expect(recorder.containerEl.classList.contains('dda-is-recording')).toBe(true);
+      expect(recorder.recordBtn.style.display).toBe('none');
+      expect(recorder.stopBtn.style.display).toBe('inline-flex');
+      expect(recorder.timerDisplay.style.display).toBe('inline-flex');
+      expect(mockMediaRecorderInstance.start).toHaveBeenCalledWith(100);
+    });
+
+    test('resets preparing loading state when reset is called during preparation', async () => {
+      const parent = document.createElement('div');
+      document.body.appendChild(parent);
+      recorder.render(parent);
+
+      navigator.mediaDevices.getUserMedia.mockImplementationOnce(() => new Promise(() => {})); // pending
+
+      recorder.startRecording();
+      expect(recorder.isPreparing).toBe(true);
+      expect(recorder.recordBtn.disabled).toBe(true);
+
+      recorder.reset();
+      expect(recorder.isPreparing).toBe(false);
+      expect(recorder.recordBtn.disabled).toBe(false);
+      expect(recorder.recordBtn.classList.contains('dda-preparing')).toBe(false);
     });
 
     test('updates timer interval while recording and auto-stops at 180s', async () => {
@@ -254,11 +375,27 @@ describe('VoiceRecorder & WAV Encoder', () => {
       expect(items[0].querySelector('.dda-vr-take-badge').textContent).toContain('Take #2');
       expect(items[1].querySelector('.dda-vr-take-badge').textContent).toContain('Take #1');
 
-      // Verify getUserMedia was called ONLY once because the warm stream was reused
-      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+      // Verify getUserMedia was called for each take since streams are cleanly closed after each recording
+      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(2);
+      expect(recorder.stream).toBeNull();
     });
 
-    test('prewarms microphone stream on mouseenter without starting recording', async () => {
+    test('stops all microphone tracks and sets stream to null when recording stops', async () => {
+      const parent = document.createElement('div');
+      document.body.appendChild(parent);
+      recorder.render(parent);
+
+      await recorder.startRecording();
+      expect(recorder.stream).not.toBeNull();
+      const tracks = mockMediaStream.getTracks();
+
+      recorder.stopRecording();
+
+      expect(tracks[0].stop).toHaveBeenCalled();
+      expect(recorder.stream).toBeNull();
+    });
+
+    test('does not prewarm microphone stream on mouseenter', async () => {
       const parent = document.createElement('div');
       document.body.appendChild(parent);
       recorder.render(parent);
@@ -266,9 +403,9 @@ describe('VoiceRecorder & WAV Encoder', () => {
       recorder.recordBtn.dispatchEvent(new Event('mouseenter'));
       await Promise.resolve();
 
-      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+      expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
       expect(recorder.isRecording).toBe(false);
-      expect(recorder.stream).not.toBeNull();
+      expect(recorder.stream).toBeNull();
     });
 
     test('handles microphone permission denial gracefully', async () => {
