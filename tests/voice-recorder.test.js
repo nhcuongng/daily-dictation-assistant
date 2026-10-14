@@ -233,7 +233,7 @@ describe('VoiceRecorder & WAV Encoder', () => {
       document.body.appendChild(parent);
       recorder.render(parent);
 
-      const recordPromise = recorder.startRecording(250);
+      const recordPromise = recorder.startRecording(500);
 
       expect(recorder.isPreparing).toBe(true);
       expect(recorder.isRecording).toBe(false);
@@ -242,8 +242,8 @@ describe('VoiceRecorder & WAV Encoder', () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      // Advance timers by 250ms
-      jest.advanceTimersByTime(250);
+      // Advance timers by 500ms
+      jest.advanceTimersByTime(500);
       await recordPromise;
 
       expect(recorder.isPreparing).toBe(false);
@@ -256,17 +256,17 @@ describe('VoiceRecorder & WAV Encoder', () => {
       document.body.appendChild(parent);
       recorder.render(parent);
 
-      const recordPromise = recorder.startRecording(250);
+      const recordPromise = recorder.startRecording(500);
       expect(recorder.isPreparing).toBe(true);
 
       // Flush microtasks to reach setTimeout
       await Promise.resolve();
       await Promise.resolve();
 
-      // User or system resets before 250ms
+      // User or system resets before 500ms
       recorder.reset();
 
-      jest.advanceTimersByTime(250);
+      jest.advanceTimersByTime(500);
       await recordPromise;
 
       expect(recorder.isRecording).toBe(false);

@@ -214,7 +214,7 @@ class VoiceRecorder {
   /**
    * Start microphone audio recording with loading state and settling delay
    */
-  async startRecording(settleDelayMs = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') ? 0 : 250) {
+  async startRecording(settleDelayMs = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') ? 0 : 500) {
     if (this.isRecording || this.isPreparing) return;
 
     // Stop any active voice playback
